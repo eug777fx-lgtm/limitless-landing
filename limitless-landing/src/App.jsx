@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
-const NAV_LINKS = ['Features', 'Preview', 'Early Access', 'Pricing', 'FAQ']
+const NAV_LINKS = ['Features', 'Preview', 'Early Access', 'FAQ']
 
 const STATS = [
   { value: '10,000+', label: 'Trades Tracked' },
@@ -532,11 +532,36 @@ function HowItWorks() {
 }
 
 // ─── EARLY ACCESS ─────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://fngdbdcpfamcoctmdhyc.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZuZ2RiZGNwZmFtY29jdG1kaHljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMzg1NjAsImV4cCI6MjA5MDgxNDU2MH0.WfHTTFZqBGXOTll3qcr9OOa5w2vXdurtYW-LL4tqhYY'
+
 function EarlyAccess() {
   const spotsTotal = 100
-  const spotsRemaining = 67
-  const spotsTaken = spotsTotal - spotsRemaining
-  const percentFilled = (spotsTaken / spotsTotal) * 100
+  const [approvedCount, setApprovedCount] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles?status=eq.approved&select=id`, {
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+        })
+        const data = await response.json()
+        if (!cancelled && Array.isArray(data)) setApprovedCount(data.length)
+      } catch {
+        if (!cancelled) setApprovedCount(0)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
+
+  const taken = approvedCount ?? 0
+  const remaining = Math.max(0, spotsTotal - taken)
+  const percentFilled = Math.min(100, (taken / spotsTotal) * 100)
+  const isFull = taken >= spotsTotal
 
   const bullets = [
     'Full access to every feature — no limits, no paywalls',
@@ -582,18 +607,19 @@ function EarlyAccess() {
 
               {/* Spots counter */}
               <div style={{ maxWidth: '520px', margin: '0 auto 56px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '10px' }}>
-                  <span style={{ fontSize: '12px', color: S.muted, textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 600 }}>Spots remaining</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '10px', gap: '12px', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '12px', color: S.muted, textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 600 }}>
+                    {isFull ? 'All spots taken — join waitlist' : `${remaining} spots remaining`}
+                  </span>
                   <span style={{ fontSize: '15px', color: S.text, fontWeight: 700, letterSpacing: '-0.3px' }}>
-                    <span style={{ color: '#ff4d4d' }}>{spotsRemaining}</span>
-                    <span style={{ color: S.muted2 }}> / {spotsTotal}</span>
+                    <span style={{ color: '#ff4d4d' }}>{taken}</span>
+                    <span style={{ color: S.muted2 }}> / {spotsTotal} spots taken</span>
                   </span>
                 </div>
                 <div style={{ width: '100%', height: '6px', background: '#161616', border: `1px solid ${S.border}`, borderRadius: '100px', overflow: 'hidden', marginBottom: '12px' }}>
                   <motion.div
                     initial={{ width: 0 }}
-                    whileInView={{ width: `${percentFilled}%` }}
-                    viewport={{ once: true, margin: '-60px' }}
+                    animate={{ width: `${percentFilled}%` }}
                     transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
                     style={{ height: '100%', background: 'linear-gradient(90deg, #ff3d3d 0%, #ff6b4d 100%)', borderRadius: '100px', boxShadow: '0 0 14px rgba(255,77,77,0.55)' }}
                   />
@@ -658,148 +684,6 @@ function EarlyAccess() {
           .ea-card { padding: 44px 24px !important; }
           .ea-bullets { grid-template-columns: 1fr !important; }
           .ea-steps { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
-    </section>
-  )
-}
-
-// ─── PRICING ──────────────────────────────────────────────────────────────────
-function Pricing() {
-  const [yearly, setYearly] = useState(false)
-
-  const plans = [
-    {
-      name: 'Starter',
-      price: 'Free',
-      sub: '',
-      note: 'No credit card required',
-      desc: 'For traders getting started',
-      features: ['Up to 50 trades/month', 'Basic performance stats', 'Trade log & notes', 'CSV export', 'Community access'],
-      cta: 'Get Started Free',
-      pop: false,
-    },
-    {
-      name: 'Pro',
-      price: yearly ? '$7' : '$10',
-      sub: '/month',
-      note: yearly ? 'Billed $84/year' : 'Billed monthly',
-      desc: 'For active, serious traders',
-      features: ['Unlimited trades', 'Full analytics suite', 'Screenshot attachments', 'Setup tagging & filters', 'Discipline tracking', 'Priority support', 'API access (beta)'],
-      cta: 'Start Free Trial',
-      pop: true,
-      badge: 'Most Popular',
-    },
-    {
-      name: 'Lifetime',
-      price: '$200',
-      sub: ' one-time',
-      note: 'Pay once, own forever',
-      desc: 'Everything, forever',
-      features: ['Everything in Pro', 'Lifetime updates', 'Priority support', 'Early feature access', 'Founding member badge', 'Private community'],
-      cta: 'Get Lifetime Access',
-      pop: false,
-    },
-  ]
-
-  return (
-    <section id="pricing" style={{ position: 'relative', zIndex: 1, padding: '100px 40px', borderTop: `1px solid ${S.border}` }}>
-      <div style={{ maxWidth: '1160px', margin: '0 auto' }}>
-        <FadeIn>
-          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-            <p style={{ fontSize: '11px', color: S.muted2, textTransform: 'uppercase', letterSpacing: '2.5px', marginBottom: '16px' }}>Pricing</p>
-            <h2 style={{ fontSize: 'clamp(28px, 3.5vw, 46px)', fontWeight: 800, color: S.text, letterSpacing: '-2px', margin: '0 0 36px' }}>
-              Simple, Transparent Pricing
-            </h2>
-
-            {/* Billing toggle */}
-            <div style={{ display: 'inline-flex', alignItems: 'center', background: '#0f0f0f', border: `1px solid ${S.border}`, borderRadius: '100px', padding: '4px' }}>
-              {[['Monthly', false], ['Yearly', true]].map(([label, val]) => (
-                <button
-                  key={label}
-                  onClick={() => setYearly(val)}
-                  style={{
-                    background: yearly === val ? S.text : 'transparent',
-                    color: yearly === val ? '#000' : S.muted,
-                    border: 'none', cursor: 'pointer', padding: '8px 22px', borderRadius: '100px',
-                    fontSize: '13px', fontWeight: 600, transition: 'all 0.2s',
-                    display: 'flex', alignItems: 'center', gap: '7px',
-                  }}
-                >
-                  {label}
-                  {val && (
-                    <span style={{ fontSize: '10px', background: yearly ? 'rgba(0,0,0,0.15)' : '#161616', color: yearly ? '#000' : '#4ade80', padding: '2px 7px', borderRadius: '100px', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                      2 months free
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-        </FadeIn>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', alignItems: 'start' }} className="pricing-grid">
-          {plans.map((plan, i) => (
-            <FadeIn key={i} delay={i * 0.1}>
-              <motion.div
-                whileHover={{ scale: 1.02, y: -4 }}
-                transition={{ type: 'spring', stiffness: 280, damping: 24 }}
-                style={{
-                  background: plan.pop ? '#0f0f0f' : S.card,
-                  border: plan.pop ? '1px solid rgba(255,255,255,0.18)' : `1px solid ${S.border}`,
-                  borderRadius: '16px',
-                  padding: plan.pop ? '36px 30px' : '30px',
-                  position: 'relative',
-                  boxShadow: plan.pop ? '0 0 80px rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.07)' : 'none',
-                }}
-              >
-                {plan.badge && (
-                  <div style={{ position: 'absolute', top: '-13px', left: '50%', transform: 'translateX(-50%)', background: S.text, color: '#000', fontSize: '11px', fontWeight: 700, padding: '4px 16px', borderRadius: '100px', whiteSpace: 'nowrap', letterSpacing: '0.3px' }}>
-                    {plan.badge}
-                  </div>
-                )}
-
-                <div style={{ marginBottom: '28px' }}>
-                  <div style={{ fontSize: '12px', color: S.muted, marginBottom: '8px', fontWeight: 500 }}>{plan.name}</div>
-                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '3px', marginBottom: '4px' }}>
-                    <span style={{ fontSize: '44px', fontWeight: 800, color: S.text, letterSpacing: '-2.5px', lineHeight: 1 }}>{plan.price}</span>
-                    {plan.sub && <span style={{ fontSize: '14px', color: S.muted }}>{plan.sub}</span>}
-                  </div>
-                  <div style={{ fontSize: '12px', color: S.muted2, marginBottom: '10px' }}>{plan.note}</div>
-                  <div style={{ fontSize: '13px', color: S.muted }}>{plan.desc}</div>
-                </div>
-
-                <motion.button
-                  whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                  onClick={() => window.location.href = APP_URL}
-                  style={{
-                    width: '100%', background: plan.pop ? S.text : 'transparent',
-                    border: plan.pop ? 'none' : `1px solid ${S.border}`,
-                    color: plan.pop ? '#000' : S.text,
-                    fontSize: '14px', fontWeight: 700, cursor: 'pointer', padding: '13px', borderRadius: '10px', marginBottom: '24px',
-                  }}
-                >
-                  {plan.cta}
-                </motion.button>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '11px' }}>
-                  {plan.features.map((feat, j) => (
-                    <div key={j} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={{ width: '18px', height: '18px', borderRadius: '50%', background: plan.pop ? 'rgba(255,255,255,0.1)' : '#1a1a1a', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <Check size={10} color={S.text} strokeWidth={2.5} />
-                      </div>
-                      <span style={{ fontSize: '13px', color: S.muted }}>{feat}</span>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            </FadeIn>
-          ))}
-        </div>
-      </div>
-      <style>{`
-        @media (max-width: 900px) {
-          .pricing-grid { grid-template-columns: 1fr !important; max-width: 420px; margin: 0 auto; }
         }
       `}</style>
     </section>
@@ -912,7 +796,7 @@ function Footer() {
 
         {/* Links */}
         <nav style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-          {[['Features', 'features'], ['Pricing', 'pricing'], ['FAQ', 'faq'], ['Login', null]].map(([label, id]) => (
+          {[['Features', 'features'], ['Early Access', 'early-access'], ['FAQ', 'faq'], ['Login', null]].map(([label, id]) => (
             <button
               key={label}
               onClick={() => id ? scrollTo(id) : window.location.href = APP_URL}
@@ -943,7 +827,6 @@ export default function App() {
       <Features />
       <HowItWorks />
       <EarlyAccess />
-      <Pricing />
       <FAQ />
       <FinalCTA />
       <Footer />
