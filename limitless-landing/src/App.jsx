@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
-const NAV_LINKS = ['Features', 'Preview', 'Pricing', 'FAQ']
+const NAV_LINKS = ['Features', 'Preview', 'Early Access', 'Pricing', 'FAQ']
 
 const STATS = [
   { value: '10,000+', label: 'Trades Tracked' },
@@ -210,7 +210,7 @@ function Navbar() {
 
   const scrollTo = (id) => {
     setMenuOpen(false)
-    document.getElementById(id.toLowerCase())?.scrollIntoView({ behavior: 'smooth' })
+    document.getElementById(id.toLowerCase().replace(/\s+/g, '-'))?.scrollIntoView({ behavior: 'smooth' })
   }
 
   return (
@@ -531,6 +531,139 @@ function HowItWorks() {
   )
 }
 
+// ─── EARLY ACCESS ─────────────────────────────────────────────────────────────
+function EarlyAccess() {
+  const spotsTotal = 100
+  const spotsRemaining = 67
+  const spotsTaken = spotsTotal - spotsRemaining
+  const percentFilled = (spotsTaken / spotsTotal) * 100
+
+  const bullets = [
+    'Full access to every feature — no limits, no paywalls',
+    'Your feedback shapes the product directly',
+    'Lock in the lowest price before public launch',
+    'Private community of serious traders',
+    'Direct access to the founder',
+  ]
+
+  const steps = [
+    { num: '1', title: 'Apply', desc: 'Click the button and submit your email' },
+    { num: '2', title: 'Get Approved', desc: 'We review and approve serious traders only' },
+    { num: '3', title: 'Start Journaling', desc: 'Full access, free, immediately' },
+  ]
+
+  return (
+    <section id="early-access" style={{ position: 'relative', zIndex: 1, padding: '100px 40px', borderTop: `1px solid ${S.border}` }}>
+      <div style={{ maxWidth: '1080px', margin: '0 auto' }}>
+        <FadeIn>
+          <div style={{
+            position: 'relative',
+            background: '#0a0a0a',
+            border: '1px solid rgba(255,255,255,0.14)',
+            borderRadius: '20px',
+            padding: '64px 56px',
+            boxShadow: '0 0 90px rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.02), inset 0 1px 0 rgba(255,255,255,0.06)',
+            overflow: 'hidden',
+          }} className="ea-card">
+            {/* Soft inner glow */}
+            <div aria-hidden="true" style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 45% at 50% 0%, rgba(255,255,255,0.05) 0%, transparent 70%)', pointerEvents: 'none' }} />
+
+            <div style={{ position: 'relative' }}>
+              {/* Header */}
+              <div style={{ textAlign: 'center', marginBottom: '44px' }}>
+                <p style={{ fontSize: '11px', color: S.muted2, textTransform: 'uppercase', letterSpacing: '2.5px', marginBottom: '16px' }}>Early Access</p>
+                <h2 style={{ fontSize: 'clamp(28px, 3.5vw, 46px)', fontWeight: 800, color: S.text, letterSpacing: '-2px', lineHeight: 1.1, margin: '0 0 18px' }}>
+                  Only 100 Traders Get In First.
+                </h2>
+                <p style={{ fontSize: '16px', color: S.muted, lineHeight: 1.65, maxWidth: '600px', margin: '0 auto' }}>
+                  We're opening early access to a small group of serious traders. Free. In exchange for real feedback.
+                </p>
+              </div>
+
+              {/* Spots counter */}
+              <div style={{ maxWidth: '520px', margin: '0 auto 56px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '10px' }}>
+                  <span style={{ fontSize: '12px', color: S.muted, textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 600 }}>Spots remaining</span>
+                  <span style={{ fontSize: '15px', color: S.text, fontWeight: 700, letterSpacing: '-0.3px' }}>
+                    <span style={{ color: '#ff4d4d' }}>{spotsRemaining}</span>
+                    <span style={{ color: S.muted2 }}> / {spotsTotal}</span>
+                  </span>
+                </div>
+                <div style={{ width: '100%', height: '6px', background: '#161616', border: `1px solid ${S.border}`, borderRadius: '100px', overflow: 'hidden', marginBottom: '12px' }}>
+                  <motion.div
+                    initial={{ width: 0 }}
+                    whileInView={{ width: `${percentFilled}%` }}
+                    viewport={{ once: true, margin: '-60px' }}
+                    transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+                    style={{ height: '100%', background: 'linear-gradient(90deg, #ff3d3d 0%, #ff6b4d 100%)', borderRadius: '100px', boxShadow: '0 0 14px rgba(255,77,77,0.55)' }}
+                  />
+                </div>
+                <p style={{ fontSize: '12px', color: S.muted2, textAlign: 'center', margin: 0 }}>
+                  Spots are approved manually — not first come first served
+                </p>
+              </div>
+
+              {/* Bullets */}
+              <div style={{ marginBottom: '52px' }}>
+                <p style={{ fontSize: '11px', color: S.muted2, textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '24px', fontWeight: 600, textAlign: 'center' }}>What you get</p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', columnGap: '40px', rowGap: '14px', maxWidth: '760px', margin: '0 auto' }} className="ea-bullets">
+                  {bullets.map((b, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                      <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px' }}>
+                        <Check size={11} color={S.text} strokeWidth={2.5} />
+                      </div>
+                      <span style={{ fontSize: '14px', color: '#d0d0d0', lineHeight: 1.6 }}>{b}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* How it works — 3 horizontal steps */}
+              <div style={{ marginBottom: '48px' }}>
+                <p style={{ fontSize: '11px', color: S.muted2, textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '28px', fontWeight: 600, textAlign: 'center' }}>How it works</p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }} className="ea-steps">
+                  {steps.map((s, i) => (
+                    <div key={i} style={{ background: 'rgba(255,255,255,0.025)', border: `1px solid ${S.border}`, borderRadius: '12px', padding: '24px 20px', textAlign: 'center' }}>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#141414', border: `1px solid ${S.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700, color: S.text, margin: '0 auto 14px' }}>
+                        {s.num}
+                      </div>
+                      <div style={{ fontSize: '15px', fontWeight: 700, color: S.text, marginBottom: '6px', letterSpacing: '-0.2px' }}>{s.title}</div>
+                      <div style={{ fontSize: '13px', color: S.muted, lineHeight: 1.55 }}>{s.desc}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* CTA */}
+              <div style={{ textAlign: 'center' }}>
+                <motion.button
+                  whileHover={{ scale: 1.04, boxShadow: '0 0 60px rgba(255,255,255,0.22)' }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => window.location.href = APP_URL}
+                  style={{ background: S.text, border: 'none', color: '#000', fontSize: '16px', fontWeight: 700, cursor: 'pointer', padding: '16px 36px', borderRadius: '12px', letterSpacing: '-0.2px', boxShadow: '0 0 40px rgba(255,255,255,0.12)', transition: 'box-shadow 0.3s' }}
+                >
+                  Apply for Early Access →
+                </motion.button>
+                <p style={{ fontSize: '12px', color: S.muted2, lineHeight: 1.55, maxWidth: '440px', margin: '20px auto 0' }}>
+                  This is for active traders only. Not for beginners looking for signals.
+                </p>
+              </div>
+            </div>
+          </div>
+        </FadeIn>
+      </div>
+
+      <style>{`
+        @media (max-width: 768px) {
+          .ea-card { padding: 44px 24px !important; }
+          .ea-bullets { grid-template-columns: 1fr !important; }
+          .ea-steps { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
+    </section>
+  )
+}
+
 // ─── PRICING ──────────────────────────────────────────────────────────────────
 function Pricing() {
   const [yearly, setYearly] = useState(false)
@@ -809,6 +942,7 @@ export default function App() {
       <SocialProof />
       <Features />
       <HowItWorks />
+      <EarlyAccess />
       <Pricing />
       <FAQ />
       <FinalCTA />
