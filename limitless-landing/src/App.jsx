@@ -268,7 +268,7 @@ function Navbar() {
             onClick={() => window.location.href = APP_URL}
             style={{ background: S.text, border: 'none', color: '#000', fontSize: '14px', fontWeight: 700, cursor: 'pointer', padding: '8px 20px', borderRadius: '8px' }}
           >
-            Start Journaling
+            Apply Now
           </motion.button>
         </div>
 
@@ -300,7 +300,7 @@ function Navbar() {
             ))}
             <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
               <button onClick={() => window.location.href = APP_URL} style={{ flex: 1, background: 'none', border: `1px solid ${S.border}`, color: S.text, fontSize: '15px', fontWeight: 500, cursor: 'pointer', padding: '12px', borderRadius: '10px' }}>Login</button>
-              <button onClick={() => window.location.href = APP_URL} style={{ flex: 1, background: S.text, border: 'none', color: '#000', fontSize: '15px', fontWeight: 700, cursor: 'pointer', padding: '12px', borderRadius: '10px' }}>Start Journaling</button>
+              <button onClick={() => window.location.href = APP_URL} style={{ flex: 1, background: S.text, border: 'none', color: '#000', fontSize: '15px', fontWeight: 700, cursor: 'pointer', padding: '12px', borderRadius: '10px' }}>Apply Now</button>
             </div>
           </motion.div>
         )}
@@ -325,10 +325,16 @@ function Hero() {
         {/* Left text */}
         <div style={{ position: 'relative', zIndex: 2 }}>
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#111', border: `1px solid ${S.border}`, borderRadius: '100px', padding: '5px 14px 5px 8px', marginBottom: '28px' }}>
-              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 8px #4ade80', flexShrink: 0, display: 'block' }} />
-              <span style={{ fontSize: '12px', color: S.muted }}>Now in open beta — try free</span>
-            </div>
+            <motion.div
+              animate={{ boxShadow: ['0 0 0 1px rgba(255,255,255,0.10), 0 0 18px rgba(255,255,255,0.06)', '0 0 0 1px rgba(255,255,255,0.22), 0 0 32px rgba(255,255,255,0.16)', '0 0 0 1px rgba(255,255,255,0.10), 0 0 18px rgba(255,255,255,0.06)'] }}
+              transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#0d0d0d', border: '1px solid rgba(255,255,255,0.18)', borderRadius: '100px', padding: '6px 16px', marginBottom: '28px' }}
+            >
+              <span style={{ fontSize: '12px', lineHeight: 1, display: 'inline-block' }}>🔒</span>
+              <span style={{ fontSize: '12px', color: '#e5e5e5', fontWeight: 600, letterSpacing: '-0.1px' }}>
+                Early Access — <span style={{ color: S.muted, fontWeight: 500 }}>First 100 traders get priority approval</span>
+              </span>
+            </motion.div>
           </motion.div>
 
           <motion.h1
@@ -342,7 +348,7 @@ function Hero() {
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
             style={{ fontSize: '17px', lineHeight: 1.65, color: S.muted, maxWidth: '380px', margin: '0 0 36px' }}
           >
-            Track, analyze, and fix your trading mistakes with a powerful journaling system built for serious traders.
+            Join the early access waitlist for LIMITLESS — a private trading journal built for serious traders. Limited spots available.
           </motion.p>
 
           <motion.div
@@ -352,18 +358,18 @@ function Hero() {
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
               onClick={() => window.location.href = APP_URL}
               style={{ background: S.text, border: 'none', color: '#000', fontSize: '15px', fontWeight: 700, cursor: 'pointer', padding: '13px 28px', borderRadius: '10px', letterSpacing: '-0.2px' }}>
-              Start Free Trial
+              Apply for Early Access →
             </motion.button>
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-              onClick={() => document.getElementById('preview')?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() => document.getElementById('early-access')?.scrollIntoView({ behavior: 'smooth' })}
               style={{ background: 'transparent', border: `1px solid ${S.border}`, color: S.text, fontSize: '15px', fontWeight: 500, cursor: 'pointer', padding: '13px 28px', borderRadius: '10px' }}>
-              See How It Works
+              See Preview
             </motion.button>
           </motion.div>
 
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
             style={{ fontSize: '12px', color: S.muted2 }}>
-            No credit card required · Cancel anytime
+            No payment required · Limited approvals only · Serious traders only
           </motion.p>
         </div>
 
@@ -769,9 +775,9 @@ function FinalCTA() {
             onClick={() => window.location.href = APP_URL}
             style={{ background: S.text, border: 'none', color: '#000', fontSize: '17px', fontWeight: 700, cursor: 'pointer', padding: '17px 44px', borderRadius: '13px', letterSpacing: '-0.3px', boxShadow: '0 0 40px rgba(255,255,255,0.12)', transition: 'box-shadow 0.3s' }}
           >
-            Start Free Trial
+            Apply for Early Access →
           </motion.button>
-          <p style={{ fontSize: '13px', color: S.muted2, marginTop: '18px' }}>No credit card required · Cancel anytime</p>
+          <p style={{ fontSize: '13px', color: S.muted2, marginTop: '18px' }}>No payment required · Limited approvals only · Serious traders only</p>
         </div>
       </FadeIn>
     </section>
