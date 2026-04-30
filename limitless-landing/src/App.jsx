@@ -1,5 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence, useInView } from 'framer-motion'
+import {
+  motion, AnimatePresence, useInView,
+  useScroll, useTransform, useMotionValue, useSpring,
+} from 'framer-motion'
+import Lenis from '@studio-freight/lenis'
 import {
   BarChart2, BookOpen, Tag, Target, Menu, X, ChevronDown,
   Check, Star
@@ -9,9 +13,10 @@ import {
 const NAV_LINKS = ['Features', 'Preview', 'Early Access', 'FAQ']
 
 const STATS = [
-  { value: '10,000+', label: 'Trades Tracked' },
-  { value: '500+', label: 'Active Traders' },
-  { value: '2M+', label: 'Data Points Analyzed' },
+  { to: 500,    suffix: '+', label: 'Beta Traders' },
+  { to: 10000,  suffix: '+', label: 'Trades Tracked', format: (v) => v.toLocaleString() },
+  { to: 74,     suffix: '%', label: 'Avg Win Rate' },
+  { to: 0,      prefix: '$', label: 'To Get Started' },
 ]
 
 const TESTIMONIALS = [
@@ -44,6 +49,20 @@ const FAQS = [
 ]
 
 const APP_URL = 'https://limitless-journal.vercel.app'
+
+// Smooth-scroll helper that prefers Lenis when available
+const smoothScrollToId = (id) => {
+  const el = document.getElementById(id)
+  if (!el) return
+  const lenis = typeof window !== 'undefined' ? window.__lenis : null
+  if (lenis?.scrollTo) lenis.scrollTo(el, { offset: -8 })
+  else el.scrollIntoView({ behavior: 'smooth' })
+}
+const smoothScrollToTop = () => {
+  const lenis = typeof window !== 'undefined' ? window.__lenis : null
+  if (lenis?.scrollTo) lenis.scrollTo(0)
+  else window.scrollTo({ top: 0, behavior: 'smooth' })
+}
 
 // ─── DESIGN TOKENS ───────────────────────────────────────────────────────────
 const S = {
@@ -101,6 +120,151 @@ function FadeIn({ children, delay = 0, y = 24, style = {} }) {
   )
 }
 
+// ─── ANIMATED SECTION (scroll-progress driven reveal) ────────────────────────
+function AnimatedSection({ children, style = {} }) {
+  const ref = useRef(null)
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['0 1', '0.5 1'] })
+  const opacity = useTransform(scrollYProgress, [0, 1], [0, 1])
+  const y = useTransform(scrollYProgress, [0, 1], [40, 0])
+  return (
+    <motion.div ref={ref} style={{ opacity, y, ...style }}>
+      {children}
+    </motion.div>
+  )
+}
+
+// ─── COUNT UP NUMBER ──────────────────────────────────────────────────────────
+function CountUp({ to, prefix = '', suffix = '', format, duration = 1.5 }) {
+  const ref = useRef(null)
+  const inView = useInView(ref, { once: true, margin: '-60px' })
+  const [val, setVal] = useState(0)
+
+  useEffect(() => {
+    if (!inView) return
+    if (to === 0) { setVal(0); return }
+    const start = performance.now()
+    let raf
+    const tick = (now) => {
+      const t = Math.min(1, (now - start) / (duration * 1000))
+      const eased = 1 - Math.pow(1 - t, 3)
+      setVal(Math.round(to * eased))
+      if (t < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [inView, to, duration])
+
+  return <span ref={ref}>{prefix}{format ? format(val) : val}{suffix}</span>
+}
+
+// ─── COUNT DOWN NUMBER ────────────────────────────────────────────────────────
+function CountDown({ from, to, duration = 1.5, style = {} }) {
+  const ref = useRef(null)
+  const inView = useInView(ref, { once: true, margin: '-60px' })
+  const [val, setVal] = useState(from)
+
+  useEffect(() => {
+    if (!inView) return
+    const start = performance.now()
+    let raf
+    const tick = (now) => {
+      const t = Math.min(1, (now - start) / (duration * 1000))
+      const eased = 1 - Math.pow(1 - t, 3)
+      setVal(Math.round(from + (to - from) * eased))
+      if (t < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [inView, from, to, duration])
+
+  return <span ref={ref} style={style}>{val}</span>
+}
+
+// ─── MARQUEE TICKER ───────────────────────────────────────────────────────────
+function Marquee() {
+  const items = ['NQ', 'ES', 'EUR/USD', 'GBP/USD', 'BTC', 'Gold', 'Silver', 'Forex', 'Futures', 'Crypto']
+  const block = items.join(' · ') + ' · '
+
+  return (
+    <div style={{
+      position: 'relative', zIndex: 1,
+      height: '44px', display: 'flex', alignItems: 'center', overflow: 'hidden',
+      borderTop: `1px solid #1f1f1f`, borderBottom: `1px solid #1f1f1f`,
+      background: 'rgba(10,10,10,0.6)', backdropFilter: 'blur(8px)',
+      WebkitBackdropFilter: 'blur(8px)',
+    }}>
+      <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: '120px', background: 'linear-gradient(90deg, #080808, transparent)', zIndex: 2, pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', top: 0, bottom: 0, right: 0, width: '120px', background: 'linear-gradient(270deg, #080808, transparent)', zIndex: 2, pointerEvents: 'none' }} />
+      <motion.div
+        animate={{ x: ['0%', '-50%'] }}
+        transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
+        style={{ display: 'flex', whiteSpace: 'nowrap', flexShrink: 0, willChange: 'transform' }}
+      >
+        {[...Array(8)].map((_, i) => (
+          <span key={i} style={{ fontSize: '12px', color: '#666', fontWeight: 600, letterSpacing: '2px', textTransform: 'uppercase', padding: '0 18px' }}>{block}</span>
+        ))}
+      </motion.div>
+    </div>
+  )
+}
+
+// ─── CURSOR EFFECT (desktop only) ─────────────────────────────────────────────
+function CursorEffect() {
+  const [enabled, setEnabled] = useState(false)
+  const [hover, setHover] = useState(false)
+  const dotX = useMotionValue(-100)
+  const dotY = useMotionValue(-100)
+  const ringX = useSpring(dotX, { damping: 22, stiffness: 240, mass: 0.5 })
+  const ringY = useSpring(dotY, { damping: 22, stiffness: 240, mass: 0.5 })
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const isDesktop = window.matchMedia('(min-width: 900px)').matches && !('ontouchstart' in window)
+    if (!isDesktop) return
+    setEnabled(true)
+    document.documentElement.style.cursor = 'none'
+
+    const move = (e) => { dotX.set(e.clientX); dotY.set(e.clientY) }
+    const onOver = (e) => { if (e.target.closest('button, a, [role="button"]')) setHover(true) }
+    const onOut  = (e) => { if (e.target.closest('button, a, [role="button"]')) setHover(false) }
+
+    window.addEventListener('mousemove', move, { passive: true })
+    document.addEventListener('mouseover', onOver)
+    document.addEventListener('mouseout', onOut)
+    return () => {
+      document.documentElement.style.cursor = ''
+      window.removeEventListener('mousemove', move)
+      document.removeEventListener('mouseover', onOver)
+      document.removeEventListener('mouseout', onOut)
+    }
+  }, [dotX, dotY])
+
+  if (!enabled) return null
+  return (
+    <>
+      <motion.div style={{
+        position: 'fixed', top: 0, left: 0, x: dotX, y: dotY,
+        width: 6, height: 6, marginLeft: -3, marginTop: -3,
+        borderRadius: '50%', background: '#fff',
+        pointerEvents: 'none', zIndex: 99999, mixBlendMode: 'difference',
+      }} />
+      <motion.div
+        animate={{ scale: hover ? 1.7 : 1, opacity: hover ? 0.8 : 0.5 }}
+        transition={{ type: 'spring', damping: 18, stiffness: 220 }}
+        style={{
+          position: 'fixed', top: 0, left: 0, x: ringX, y: ringY,
+          width: 36, height: 36, marginLeft: -18, marginTop: -18,
+          borderRadius: '50%', border: '1.5px solid rgba(255,255,255,0.6)',
+          pointerEvents: 'none', zIndex: 99998, mixBlendMode: 'difference',
+        }}
+      />
+      <style>{`
+        @media (max-width: 899px) { html { cursor: auto !important; } }
+      `}</style>
+    </>
+  )
+}
+
 // ─── FLOATING PARTICLES ───────────────────────────────────────────────────────
 function FloatingParticles() {
   const particles = [
@@ -127,11 +291,16 @@ function FloatingParticles() {
 
 // ─── DASHBOARD MOCKUP ─────────────────────────────────────────────────────────
 function DashboardMockup() {
+  const ref = useRef(null)
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'center center'] })
+  const rotX = useTransform(scrollYProgress, [0, 1], [8, 0])
+
   return (
     <motion.div
-      initial={{ opacity: 0, x: 50, y: 12 }}
+      ref={ref}
+      initial={{ opacity: 0, x: 50, y: 60 }}
       animate={{ opacity: 1, x: 0, y: 0 }}
-      transition={{ duration: 1.1, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 1.1, delay: 1.4, ease: [0.22, 1, 0.36, 1] }}
       style={{ position: 'relative', width: '100%', maxWidth: '760px' }}
     >
       {/* Ambient green glow */}
@@ -142,11 +311,13 @@ function DashboardMockup() {
       {/* 3D floating window */}
       <motion.div
         animate={{ y: [0, -8, 0] }}
-        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
         style={{ position: 'relative', zIndex: 1 }}
       >
-        <div style={{
-          transform: 'perspective(1200px) rotateY(-10deg) rotateX(4deg)',
+        <motion.div style={{
+          rotateX: rotX,
+          rotateY: -10,
+          transformPerspective: 1200,
           transformOrigin: 'center center',
           background: '#0b0b0b',
           border: '1px solid #272727',
@@ -166,7 +337,7 @@ function DashboardMockup() {
           </div>
 
           <img src="/dashboard2.png" style={{ width: '100%', height: 'auto', display: 'block', borderRadius: '0 0 12px 12px' }} />
-        </div>
+        </motion.div>
 
         {/* Floating badge */}
         <motion.div
@@ -210,14 +381,15 @@ function Navbar() {
 
   const scrollTo = (id) => {
     setMenuOpen(false)
-    document.getElementById(id.toLowerCase().replace(/\s+/g, '-'))?.scrollIntoView({ behavior: 'smooth' })
+    smoothScrollToId(id.toLowerCase().replace(/\s+/g, '-'))
   }
 
   return (
     <>
       <motion.nav
+        initial={{ y: -80, opacity: 0 }}
         animate={{ y: visible ? 0 : -80, opacity: visible ? 1 : 0 }}
-        transition={{ duration: 0.28, ease: 'easeInOut' }}
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
         style={{
           position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -232,7 +404,7 @@ function Navbar() {
         {/* Logo */}
         <div
           style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          onClick={smoothScrollToTop}
         >
           <img src="/logo2.png" height="28" alt="Limitless logo" style={{ display: 'block' }} />
           <span style={{ fontWeight: 700, fontSize: '17px', letterSpacing: '-0.3px', color: S.text }}>LIMITLESS</span>
@@ -317,14 +489,30 @@ function Navbar() {
 }
 
 // ─── HERO ─────────────────────────────────────────────────────────────────────
+const HEADLINE_LINES = [
+  ['Turn', 'Your', 'Trades'],
+  ['Into', 'Data.', 'Your'],
+  ['Data', 'Into', 'Profit.'],
+]
+
 function Hero() {
+  let wordIdx = 0
+
   return (
-    <section style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', padding: '120px 40px 80px', position: 'relative', zIndex: 1 }}>
-      <div style={{ maxWidth: '1280px', margin: '0 auto', width: '100%', display: 'grid', gridTemplateColumns: '420px 1fr', gap: '56px', alignItems: 'center' }} className="hero-grid">
+    <section style={{
+      minHeight: '100vh', display: 'flex', alignItems: 'center', padding: '120px 40px 80px',
+      position: 'relative', zIndex: 1,
+      backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px)',
+      backgroundSize: '40px 40px',
+    }}>
+      {/* Hero edge fade so dot grid feathers into surrounding bg */}
+      <div aria-hidden="true" style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 60% at 50% 50%, transparent 30%, #080808 85%)', pointerEvents: 'none', zIndex: 0 }} />
+
+      <div style={{ maxWidth: '1280px', margin: '0 auto', width: '100%', display: 'grid', gridTemplateColumns: '420px 1fr', gap: '56px', alignItems: 'center', position: 'relative', zIndex: 2 }} className="hero-grid">
 
         {/* Left text */}
         <div style={{ position: 'relative', zIndex: 2 }}>
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, delay: 0.2 }}>
             <motion.div
               animate={{ boxShadow: ['0 0 0 1px rgba(255,255,255,0.10), 0 0 18px rgba(255,255,255,0.06)', '0 0 0 1px rgba(255,255,255,0.22), 0 0 32px rgba(255,255,255,0.16)', '0 0 0 1px rgba(255,255,255,0.10), 0 0 18px rgba(255,255,255,0.06)'] }}
               transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
@@ -337,22 +525,36 @@ function Hero() {
             </motion.div>
           </motion.div>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
-            style={{ fontSize: 'clamp(38px, 4.2vw, 56px)', fontWeight: 800, lineHeight: 1.07, letterSpacing: '-2.5px', color: S.text, margin: '0 0 22px' }}
-          >
-            Turn Your Trades<br />Into Data. Your<br />Data Into Profit.
-          </motion.h1>
+          <h1 style={{ fontSize: 'clamp(38px, 4.2vw, 56px)', fontWeight: 800, lineHeight: 1.07, letterSpacing: '-2.5px', color: S.text, margin: '0 0 22px' }}>
+            {HEADLINE_LINES.map((line, li) => (
+              <span key={li} style={{ display: 'block' }}>
+                {line.map((word) => {
+                  const i = wordIdx++
+                  return (
+                    <motion.span
+                      key={i}
+                      initial={{ opacity: 0, filter: 'blur(12px)', y: 20 }}
+                      animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
+                      transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.3 + i * 0.08 }}
+                      style={{ display: 'inline-block', marginRight: '0.25em', willChange: 'transform, filter, opacity' }}
+                    >
+                      {word}
+                    </motion.span>
+                  )
+                })}
+              </span>
+            ))}
+          </h1>
 
           <motion.p
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.8, ease: [0.16, 1, 0.3, 1] }}
             style={{ fontSize: '17px', lineHeight: 1.65, color: S.muted, maxWidth: '380px', margin: '0 0 36px' }}
           >
             Join the early access waitlist for LIMITLESS — a private trading journal built for serious traders. Limited spots available.
           </motion.p>
 
           <motion.div
-            initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.26 }}
+            initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 1.0, ease: [0.16, 1, 0.3, 1] }}
             style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '18px' }}
           >
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
@@ -361,13 +563,13 @@ function Hero() {
               Apply for Early Access →
             </motion.button>
             <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-              onClick={() => document.getElementById('early-access')?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() => smoothScrollToId('early-access')}
               style={{ background: 'transparent', border: `1px solid ${S.border}`, color: S.text, fontSize: '15px', fontWeight: 500, cursor: 'pointer', padding: '13px 28px', borderRadius: '10px' }}>
               See Preview
             </motion.button>
           </motion.div>
 
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2, duration: 0.5 }}
             style={{ fontSize: '12px', color: S.muted2 }}>
             No payment required · Limited approvals only · Serious traders only
           </motion.p>
@@ -407,10 +609,12 @@ function SocialProof() {
 
         {/* Stats bar */}
         <FadeIn delay={0.08}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', background: S.border, borderRadius: S.radius, overflow: 'hidden', marginBottom: '48px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1px', background: S.border, borderRadius: S.radius, overflow: 'hidden', marginBottom: '48px' }} className="stats-grid">
             {STATS.map((s, i) => (
-              <div key={i} style={{ background: S.bg, padding: '36px 24px', textAlign: 'center' }}>
-                <div style={{ fontSize: '40px', fontWeight: 800, color: S.text, letterSpacing: '-2px', marginBottom: '6px' }}>{s.value}</div>
+              <div key={i} style={{ background: S.bg, padding: '36px 20px', textAlign: 'center' }}>
+                <div style={{ fontSize: '40px', fontWeight: 800, color: S.text, letterSpacing: '-2px', marginBottom: '6px' }}>
+                  <CountUp to={s.to} prefix={s.prefix} suffix={s.suffix} format={s.format} />
+                </div>
                 <div style={{ fontSize: '13px', color: S.muted }}>{s.label}</div>
               </div>
             ))}
@@ -439,11 +643,64 @@ function SocialProof() {
         </div>
       </div>
       <style>{`
+        @media (max-width: 900px) {
+          .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
         @media (max-width: 768px) {
           .testimonial-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
     </section>
+  )
+}
+
+// ─── FEATURE CARD (with mouse spotlight) ──────────────────────────────────────
+function FeatureCard({ feature, index }) {
+  const Icon = feature.icon
+  const ref = useRef(null)
+  const mouseX = useMotionValue(-200)
+  const mouseY = useMotionValue(-200)
+  const [active, setActive] = useState(false)
+
+  const onMouseMove = (e) => {
+    const r = ref.current?.getBoundingClientRect()
+    if (!r) return
+    mouseX.set(e.clientX - r.left)
+    mouseY.set(e.clientY - r.top)
+  }
+
+  const background = useTransform(
+    [mouseX, mouseY],
+    ([x, y]) => `radial-gradient(260px circle at ${x}px ${y}px, rgba(255,255,255,0.08), transparent 60%)`
+  )
+
+  return (
+    <motion.div
+      ref={ref}
+      onMouseEnter={() => setActive(true)}
+      onMouseLeave={() => setActive(false)}
+      onMouseMove={onMouseMove}
+      initial={{ opacity: 0, y: 60, scale: 0.95 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      whileHover={{ y: -6 }}
+      viewport={{ once: true, margin: '-60px' }}
+      transition={{ duration: 0.6, delay: index * 0.15, ease: [0.16, 1, 0.3, 1] }}
+      style={{ position: 'relative', background: S.card, border: `1px solid ${S.border}`, borderRadius: S.radius, padding: '32px 28px', height: '100%', overflow: 'hidden' }}
+    >
+      <motion.div
+        aria-hidden="true"
+        animate={{ opacity: active ? 1 : 0 }}
+        transition={{ duration: 0.25 }}
+        style={{ position: 'absolute', inset: 0, background, pointerEvents: 'none', zIndex: 0 }}
+      />
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        <div style={{ width: '46px', height: '46px', borderRadius: '11px', background: '#141414', border: `1px solid ${S.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+          <Icon size={20} color={S.text} />
+        </div>
+        <h3 style={{ fontSize: '17px', fontWeight: 700, color: S.text, letterSpacing: '-0.5px', marginBottom: '10px' }}>{feature.title}</h3>
+        <p style={{ fontSize: '14px', lineHeight: 1.7, color: S.muted, margin: 0 }}>{feature.desc}</p>
+      </div>
+    </motion.div>
   )
 }
 
@@ -462,24 +719,7 @@ function Features() {
         </FadeIn>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }} className="features-grid">
-          {FEATURES.map((f, i) => {
-            const Icon = f.icon
-            return (
-              <FadeIn key={i} delay={i * 0.09}>
-                <motion.div
-                  whileHover={{ y: -5, boxShadow: '0 12px 48px rgba(255,255,255,0.05)' }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-                  style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: S.radius, padding: '32px 28px', height: '100%' }}
-                >
-                  <div style={{ width: '46px', height: '46px', borderRadius: '11px', background: '#141414', border: `1px solid ${S.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
-                    <Icon size={20} color={S.text} />
-                  </div>
-                  <h3 style={{ fontSize: '17px', fontWeight: 700, color: S.text, letterSpacing: '-0.5px', marginBottom: '10px' }}>{f.title}</h3>
-                  <p style={{ fontSize: '14px', lineHeight: 1.7, color: S.muted, margin: 0 }}>{f.desc}</p>
-                </motion.div>
-              </FadeIn>
-            )
-          })}
+          {FEATURES.map((f, i) => <FeatureCard key={i} feature={f} index={i} />)}
         </div>
       </div>
       <style>{`
@@ -506,20 +746,38 @@ function HowItWorks() {
         </FadeIn>
 
         <div style={{ position: 'relative' }}>
-          {/* Connector line */}
-          <div style={{ position: 'absolute', top: '27px', left: 'calc(12.5% + 28px)', right: 'calc(12.5% + 28px)', height: '1px', background: `linear-gradient(90deg, transparent, ${S.border} 15%, ${S.border} 85%, transparent)` }} className="step-line" />
+          {/* Connector line — draws itself */}
+          <motion.div
+            initial={{ scaleX: 0 }}
+            whileInView={{ scaleX: 1 }}
+            viewport={{ once: true, margin: '-100px' }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
+            style={{ transformOrigin: 'left center', position: 'absolute', top: '27px', left: 'calc(12.5% + 28px)', right: 'calc(12.5% + 28px)', height: '1px', background: `linear-gradient(90deg, transparent, ${S.border} 15%, ${S.border} 85%, transparent)` }}
+            className="step-line"
+          />
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', position: 'relative' }} className="steps-grid">
             {STEPS.map((step, i) => (
-              <FadeIn key={i} delay={i * 0.12}>
-                <div style={{ textAlign: 'center', padding: '0 8px' }}>
-                  <div style={{ width: '54px', height: '54px', borderRadius: '50%', background: S.card, border: `1px solid ${S.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: '13px', fontWeight: 700, color: S.text, boxShadow: `0 0 0 8px ${S.bg}` }}>
-                    {step.num}
-                  </div>
+              <div key={i} style={{ textAlign: 'center', padding: '0 8px' }}>
+                <motion.div
+                  initial={{ scale: 0, opacity: 0 }}
+                  whileInView={{ scale: 1, opacity: 1 }}
+                  viewport={{ once: true, margin: '-100px' }}
+                  transition={{ type: 'spring', stiffness: 280, damping: 18, delay: 0.3 + i * 0.12 }}
+                  style={{ width: '54px', height: '54px', borderRadius: '50%', background: S.card, border: `1px solid ${S.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: '13px', fontWeight: 700, color: S.text, boxShadow: `0 0 0 8px ${S.bg}` }}
+                >
+                  {step.num}
+                </motion.div>
+                <motion.div
+                  initial={{ opacity: 0, y: 14 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-100px' }}
+                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1], delay: 0.5 + i * 0.12 }}
+                >
                   <h3 style={{ fontSize: '15px', fontWeight: 700, color: S.text, marginBottom: '8px', letterSpacing: '-0.3px' }}>{step.title}</h3>
                   <p style={{ fontSize: '13px', lineHeight: 1.65, color: S.muted, margin: 0 }}>{step.desc}</p>
-                </div>
-              </FadeIn>
+                </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -615,10 +873,16 @@ function EarlyAccess() {
               <div style={{ maxWidth: '520px', margin: '0 auto 56px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '10px', gap: '12px', flexWrap: 'wrap' }}>
                   <span style={{ fontSize: '12px', color: S.muted, textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 600 }}>
-                    {isFull ? 'All spots taken — join waitlist' : `${remaining} spots remaining`}
+                    {isFull
+                      ? 'All spots taken — join waitlist'
+                      : approvedCount === null
+                        ? `${spotsTotal} spots remaining`
+                        : <><CountDown key={`rem-${remaining}`} from={spotsTotal} to={remaining} /> spots remaining</>}
                   </span>
                   <span style={{ fontSize: '15px', color: S.text, fontWeight: 700, letterSpacing: '-0.3px' }}>
-                    <span style={{ color: '#ff4d4d' }}>{taken}</span>
+                    <span style={{ color: '#ff4d4d' }}>
+                      <CountUp key={`take-${taken}`} to={taken} />
+                    </span>
                     <span style={{ color: S.muted2 }}> / {spotsTotal} spots taken</span>
                   </span>
                 </div>
@@ -640,12 +904,19 @@ function EarlyAccess() {
                 <p style={{ fontSize: '11px', color: S.muted2, textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '24px', fontWeight: 600, textAlign: 'center' }}>What you get</p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', columnGap: '40px', rowGap: '14px', maxWidth: '760px', margin: '0 auto' }} className="ea-bullets">
                   {bullets.map((b, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, x: -16 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      viewport={{ once: true, margin: '-60px' }}
+                      transition={{ duration: 0.5, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
+                      style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}
+                    >
                       <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px' }}>
                         <Check size={11} color={S.text} strokeWidth={2.5} />
                       </div>
                       <span style={{ fontSize: '14px', color: '#d0d0d0', lineHeight: 1.6 }}>{b}</span>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               </div>
@@ -712,41 +983,56 @@ function FAQ() {
           </div>
         </FadeIn>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {FAQS.map((faq, i) => (
-            <FadeIn key={i} delay={i * 0.04}>
-              <div style={{ background: S.card, border: `1px solid ${open === i ? '#2e2e2e' : S.border}`, borderRadius: S.radiusSm, overflow: 'hidden', transition: 'border-color 0.2s' }}>
-                <button
-                  onClick={() => setOpen(open === i ? null : i)}
-                  style={{ width: '100%', background: 'none', border: 'none', padding: '20px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', textAlign: 'left', gap: '16px' }}
+            <motion.div
+              key={i}
+              layout
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.5, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }}
+              style={{
+                background: 'rgba(13,13,13,0.7)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                border: `1px solid ${open === i ? 'rgba(255,255,255,0.18)' : S.border}`,
+                borderRadius: S.radiusSm,
+                overflow: 'hidden',
+                transition: 'border-color 0.2s, background 0.2s',
+              }}
+            >
+              <motion.button
+                layout="position"
+                onClick={() => setOpen(open === i ? null : i)}
+                style={{ width: '100%', background: 'none', border: 'none', padding: '20px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', textAlign: 'left', gap: '16px' }}
+              >
+                <span style={{ fontSize: '15px', fontWeight: 600, color: S.text, letterSpacing: '-0.2px' }}>{faq.q}</span>
+                <motion.span
+                  animate={{ rotate: open === i ? 180 : 0 }}
+                  transition={{ duration: 0.22 }}
+                  style={{ color: S.muted, flexShrink: 0, display: 'flex' }}
                 >
-                  <span style={{ fontSize: '15px', fontWeight: 600, color: S.text, letterSpacing: '-0.2px' }}>{faq.q}</span>
-                  <motion.span
-                    animate={{ rotate: open === i ? 180 : 0 }}
-                    transition={{ duration: 0.22 }}
-                    style={{ color: S.muted, flexShrink: 0, display: 'flex' }}
+                  <ChevronDown size={18} />
+                </motion.span>
+              </motion.button>
+              <AnimatePresence initial={false}>
+                {open === i && (
+                  <motion.div
+                    key="content"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+                    style={{ overflow: 'hidden' }}
                   >
-                    <ChevronDown size={18} />
-                  </motion.span>
-                </button>
-                <AnimatePresence initial={false}>
-                  {open === i && (
-                    <motion.div
-                      key="content"
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.26, ease: 'easeInOut' }}
-                      style={{ overflow: 'hidden' }}
-                    >
-                      <div style={{ padding: '0 24px 20px', borderTop: `1px solid ${S.border}` }}>
-                        <p style={{ fontSize: '14px', lineHeight: 1.72, color: S.muted, paddingTop: '16px', margin: 0 }}>{faq.a}</p>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </FadeIn>
+                    <div style={{ padding: '0 24px 20px', borderTop: `1px solid ${S.border}` }}>
+                      <p style={{ fontSize: '14px', lineHeight: 1.72, color: S.muted, paddingTop: '16px', margin: 0 }}>{faq.a}</p>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
           ))}
         </div>
       </div>
@@ -786,7 +1072,7 @@ function FinalCTA() {
 
 // ─── FOOTER ──────────────────────────────────────────────────────────────────
 function Footer() {
-  const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+  const scrollTo = (id) => smoothScrollToId(id)
 
   return (
     <footer style={{ position: 'relative', zIndex: 1, borderTop: `1px solid ${S.border}`, padding: '48px 40px 40px' }}>
@@ -823,18 +1109,40 @@ function Footer() {
 
 // ─── APP ROOT ─────────────────────────────────────────────────────────────────
 export default function App() {
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smooth: true,
+    })
+    window.__lenis = lenis
+    let raf
+    function tick(time) {
+      lenis.raf(time)
+      raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => {
+      cancelAnimationFrame(raf)
+      delete window.__lenis
+      lenis.destroy()
+    }
+  }, [])
+
   return (
     <div style={{ background: S.bg, minHeight: '100vh', position: 'relative' }}>
       <GrainOverlay />
       <AuroraBlobs />
+      <CursorEffect />
       <Navbar />
       <Hero />
-      <SocialProof />
-      <Features />
-      <HowItWorks />
-      <EarlyAccess />
-      <FAQ />
-      <FinalCTA />
+      <Marquee />
+      <AnimatedSection><SocialProof /></AnimatedSection>
+      <AnimatedSection><Features /></AnimatedSection>
+      <AnimatedSection><HowItWorks /></AnimatedSection>
+      <AnimatedSection><EarlyAccess /></AnimatedSection>
+      <AnimatedSection><FAQ /></AnimatedSection>
+      <AnimatedSection><FinalCTA /></AnimatedSection>
       <Footer />
     </div>
   )
