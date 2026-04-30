@@ -5,7 +5,7 @@ import {
 } from 'framer-motion'
 import {
   BarChart2, BookOpen, Tag, Target, Menu, X, ChevronDown,
-  Check, Star
+  Check, Star, Lock
 } from 'lucide-react'
 
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
@@ -510,7 +510,7 @@ function Hero() {
               transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
               style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#0d0d0d', border: '1px solid rgba(255,255,255,0.18)', borderRadius: '100px', padding: '6px 16px', marginBottom: '28px' }}
             >
-              <span style={{ fontSize: '12px', lineHeight: 1, display: 'inline-block' }}>🔒</span>
+              <Lock size={12} color="#e5e5e5" style={{ display: 'inline-block', flexShrink: 0 }} />
               <span style={{ fontSize: '12px', color: '#e5e5e5', fontWeight: 600, letterSpacing: '-0.1px' }}>
                 Early Access — <span style={{ color: S.muted, fontWeight: 500 }}>First 100 traders get priority approval</span>
               </span>
