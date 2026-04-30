@@ -3,7 +3,6 @@ import {
   motion, AnimatePresence, useInView,
   useScroll, useTransform, useMotionValue, useSpring,
 } from 'framer-motion'
-import Lenis from '@studio-freight/lenis'
 import {
   BarChart2, BookOpen, Tag, Target, Menu, X, ChevronDown,
   Check, Star
@@ -50,18 +49,11 @@ const FAQS = [
 
 const APP_URL = 'https://limitless-journal.vercel.app'
 
-// Smooth-scroll helper that prefers Lenis when available
 const smoothScrollToId = (id) => {
-  const el = document.getElementById(id)
-  if (!el) return
-  const lenis = typeof window !== 'undefined' ? window.__lenis : null
-  if (lenis?.scrollTo) lenis.scrollTo(el, { offset: -8 })
-  else el.scrollIntoView({ behavior: 'smooth' })
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 }
 const smoothScrollToTop = () => {
-  const lenis = typeof window !== 'undefined' ? window.__lenis : null
-  if (lenis?.scrollTo) lenis.scrollTo(0)
-  else window.scrollTo({ top: 0, behavior: 'smooth' })
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 // ─── DESIGN TOKENS ───────────────────────────────────────────────────────────
@@ -1109,26 +1101,6 @@ function Footer() {
 
 // ─── APP ROOT ─────────────────────────────────────────────────────────────────
 export default function App() {
-  useEffect(() => {
-    const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-      smooth: true,
-    })
-    window.__lenis = lenis
-    let raf
-    function tick(time) {
-      lenis.raf(time)
-      raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => {
-      cancelAnimationFrame(raf)
-      delete window.__lenis
-      lenis.destroy()
-    }
-  }, [])
-
   return (
     <div style={{ background: S.bg, minHeight: '100vh', position: 'relative' }}>
       <GrainOverlay />

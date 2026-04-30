@@ -1,6 +1,5 @@
 {
   "dependencies": {
-    "@studio-freight/lenis": "^1.0.42",
     "framer-motion": "^12.38.0"
   }
 }
