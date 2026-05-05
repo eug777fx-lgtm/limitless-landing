@@ -47,7 +47,7 @@ const FAQS = [
   { q: 'Can I cancel anytime?', a: 'Absolutely. No contracts, no hidden fees. Cancel your subscription in one click and your data remains accessible for 30 days.' },
 ]
 
-const APP_URL = 'https://limitless-journal.vercel.app'
+const APP_URL = 'https://app.limitless-journal.com'
 
 const smoothScrollToId = (id) => {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
