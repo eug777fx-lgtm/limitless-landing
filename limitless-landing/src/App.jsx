@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback, createContext, useContext } from 'react'
 import {
   motion, AnimatePresence, useInView,
   useScroll, useTransform, useMotionValue, useSpring,
 } from 'framer-motion'
 import {
   BarChart2, BookOpen, Tag, Target, Menu, X, ChevronDown,
-  Check, Star, Lock
+  Check, Star, Lock, Search, ArrowLeft, ArrowRight, Clock, Calendar,
 } from 'lucide-react'
 
 // ─── CONSTANTS ───────────────────────────────────────────────────────────────
@@ -52,9 +52,284 @@ const APP_URL = 'https://app.limitless-journal.com'
 const smoothScrollToId = (id) => {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 }
-const smoothScrollToTop = () => {
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+// ─── BLOG: ROUTING (state-based, no react-router) ────────────────────────────
+const RouterContext = createContext({ route: { page: 'home' }, navigate: () => {} })
+const useRouter = () => useContext(RouterContext)
+
+function parseRoute(pathname) {
+  if (/^\/blog\/?$/.test(pathname)) return { page: 'blog' }
+  const m = pathname.match(/^\/blog\/([^/]+)\/?$/)
+  if (m) return { page: 'article', slug: decodeURIComponent(m[1]) }
+  return { page: 'home' }
 }
+
+// Per-page <title> + meta description for SPA SEO
+function usePageMeta(title, description) {
+  useEffect(() => {
+    if (title) document.title = title
+    if (description) {
+      let tag = document.querySelector('meta[name="description"]')
+      if (!tag) {
+        tag = document.createElement('meta')
+        tag.setAttribute('name', 'description')
+        document.head.appendChild(tag)
+      }
+      tag.setAttribute('content', description)
+    }
+  }, [title, description])
+}
+
+// ─── BLOG: HELPERS ───────────────────────────────────────────────────────────
+const slugify = (s) => s.toLowerCase().replace(/[^\w]+/g, '-').replace(/^-+|-+$/g, '')
+
+const hexA = (hex, a) => {
+  const h = hex.replace('#', '')
+  const f = h.length === 3 ? h.split('').map(c => c + c).join('') : h
+  const n = parseInt(f, 16)
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`
+}
+
+const CATEGORY_COLORS = {
+  Psychology: '#a855f7',     // purple
+  Performance: '#3b82f6',    // blue
+  Strategy: '#22c55e',       // green
+  Journaling: '#ffffff',     // white
+  'Funded Trading': '#f5b531', // gold
+}
+const BLOG_CATEGORIES = ['All', 'Psychology', 'Performance', 'Strategy', 'Journaling', 'Funded Trading']
+
+const articleWordCount = (content) => content.reduce((sum, b) => {
+  let n = 0
+  if (b.text) n += b.text.trim().split(/\s+/).length
+  if (b.items) n += b.items.reduce((s, it) => s + it.trim().split(/\s+/).length, 0)
+  return sum + n
+}, 0)
+const readTimeFor = (article) => `${Math.max(1, Math.round(articleWordCount(article.content) / 200))} min read`
+const tocFor = (content) => content.filter(b => b.type === 'h2').map(b => ({ id: slugify(b.text), text: b.text }))
+const relatedArticles = (article, n = 3) => {
+  const others = ARTICLES.filter(a => a.slug !== article.slug)
+  const same = others.filter(a => a.category === article.category)
+  const rest = others.filter(a => a.category !== article.category)
+  return [...same, ...rest].slice(0, n)
+}
+
+// ─── BLOG: ARTICLES ──────────────────────────────────────────────────────────
+const ARTICLES = [
+  {
+    slug: 'how-to-keep-a-trading-journal',
+    category: 'Journaling',
+    title: 'How to Keep a Trading Journal (And Actually Stick to It)',
+    date: 'June 10, 2026',
+    excerpt: 'Most traders start a journal and quit within a week. Here is the system that makes it stick.',
+    content: [
+      { type: 'p', text: `Almost every trader has started a journal. Far fewer still have one a month later. The intention is always good — you finish a rough session, promise yourself you will track everything from now on, and for three or four days you actually do. Then a busy morning hits, you skip an entry, and the streak quietly dies. Journaling does not fail because traders are lazy. It fails because most journals are built like homework instead of like a tool. Here is the system that makes it stick.` },
+      { type: 'h2', text: 'Why Most Traders Quit Within a Week' },
+      { type: 'p', text: `The number one killer of a trading journal is friction. If logging a single trade takes ten minutes of copying numbers into a spreadsheet, your brain will find a reason to skip it the moment you are tired, frustrated, or busy — which, after a losing session, is exactly when you need the journal most.` },
+      { type: 'p', text: `The second killer is vagueness. A journal full of entries like "bad trade, felt off" tells you nothing three weeks later. Without structure you accumulate pages of notes that never turn into a single decision. A journaling habit that survives removes friction and forces just enough structure to be useful — nothing more.` },
+      { type: 'h2', text: 'What to Actually Log' },
+      { type: 'p', text: `You do not need fifty fields. You need the handful that explain why a trade happened and how it felt while it did. For every trade, capture these five things:` },
+      { type: 'ul', items: [
+        'Entry and exit — price, time, size, and the instrument you traded.',
+        'Reasoning — the setup or signal that made you click. One sentence is enough.',
+        'Emotional state — calm, anxious, bored, revenge, FOMO. Be honest.',
+        'Result — the dollar and R-multiple outcome, win or loss.',
+        'One lesson — the single thing you would repeat or change next time.',
+      ] },
+      { type: 'p', text: `Those five fields turn a trade from a random event into a data point. The emotional state field is the one most traders skip and the one that ends up mattering most — your P&L lives downstream of your psychology, not the other way around.` },
+      { type: 'h2', text: 'The 5-Minute Daily Review' },
+      { type: 'p', text: `Logging trades is only half the habit. The other half is a short, repeatable review you run at the same time every day — ideally right after the session closes, while the trades are still fresh. Five minutes is enough. Read back through the trades you took, mark which ones followed your plan and which did not, and write one line summarizing the day. The goal is not to judge yourself. It is to close the loop between action and reflection while the memory is still accurate.` },
+      { type: 'callout', text: `The traders who improve fastest are not the ones who journal the most detail. They are the ones who review the most consistently. A messy entry reviewed every day beats a perfect entry reviewed never.` },
+      { type: 'h2', text: 'Turn Your Notes Into Patterns' },
+      { type: 'p', text: `After thirty or forty trades, your journal stops being a diary and becomes a database. Now the real work begins: filtering. Sort your trades by setup and look at the win rate of each. Group them by emotional state and watch what happens to your results when you trade anxious versus calm. Break them down by time of day and you will almost always find a window where you give back everything you made in the morning. These patterns are invisible trade by trade and obvious in aggregate — which is the entire point of keeping the record.` },
+      { type: 'related', slug: 'what-is-trading-edge', label: 'Once you can see your patterns, the next step is naming your edge' },
+      { type: 'h2', text: 'Why LIMITLESS Makes It Effortless' },
+      { type: 'p', text: `Every failure mode above comes down to friction and structure, and that is exactly what LIMITLESS is built to remove. Trades import in seconds, the five fields that matter are already there, and the daily review is a single screen instead of a spreadsheet hunt. Your emotional tags, setups, and results are tracked automatically, so the patterns surface on their own instead of waiting for you to build a pivot table. The habit sticks because the tool finally gets out of your way.` },
+      { type: 'cta', text: 'Start journaling your trades today — free with early access.' },
+    ],
+  },
+  {
+    slug: 'why-traders-lose-money',
+    category: 'Psychology',
+    title: 'Why 90% of Traders Lose Money (It is Not What You Think)',
+    date: 'June 12, 2026',
+    excerpt: 'Bad setups are not why traders lose. The real reason is far more fixable.',
+    content: [
+      { type: 'p', text: `You have heard the statistic a hundred times: most retail traders lose money. The usual explanation is that they pick bad setups, trade without a strategy, or do not understand the markets. That explanation is comforting because it implies an easy fix — learn a better strategy and you will win. It is also mostly wrong. The traders blowing up their accounts are very often the same ones who can describe a clean setup in perfect detail. The problem is not knowledge. It is what happens between knowing the right move and actually making it.` },
+      { type: 'h2', text: 'The Myth: Bad Setups Cause Losses' },
+      { type: 'p', text: `Walk into any trading community and you will see endless debate about indicators, entry signals, and which strategy "actually works." Underneath it is the assumption that losing is an information problem — that if you just found the right setup, the losses would stop. But strategy is the most commoditized thing in trading. A profitable, well-documented edge can be learned in a weekend. If knowledge were the bottleneck, the failure rate would not be anywhere near as high as it is.` },
+      { type: 'h2', text: 'The Truth: A Lack of Self-Awareness' },
+      { type: 'p', text: `The real reason most traders lose is that they cannot see their own behavior clearly. They take a setup that works, then override it. They risk one percent on the trades they plan and five percent on the ones they take out of boredom. They remember their wins vividly and quietly forget the impulsive losses. Without an objective record, your memory edits the story until you are the disciplined trader you believe yourself to be — and the account balance keeps telling a different one.` },
+      { type: 'h2', text: 'The Cycles That Drain Accounts' },
+      { type: 'p', text: `Three behavioral loops do most of the damage, and every trader knows them by feel:` },
+      { type: 'ul', items: [
+        'Revenge trading — taking an immediate, oversized trade to win back a loss, turning one red trade into a red day.',
+        'FOMO — chasing a move you missed because watching it run without you feels worse than the risk of a bad entry.',
+        'Overconfidence — sizing up after a hot streak, right before the market mean-reverts and hands it all back.',
+      ] },
+      { type: 'p', text: `Notice that none of these are setup problems. They are emotional responses, and they repeat because they are invisible to the person having them in the moment.` },
+      { type: 'h2', text: 'How Data Exposes Your Real Patterns' },
+      { type: 'p', text: `The only reliable way to break a cycle you cannot feel is to make it visible after the fact. When you tag every trade with your emotional state and then look at the numbers, the story stops being subjective. You see that your revenge trades have a thirty percent win rate. You see that ninety percent of your worst losses happened in the hour after a loss. You see that your account does not have a strategy problem — it has a four-trades-after-noon problem. Data does not care about your story. It just shows you the pattern, which is the first step to interrupting it.` },
+      { type: 'callout', text: `You cannot fix what you will not measure. The trader who tracks psychology is not more disciplined by nature — they just stopped flying blind.` },
+      { type: 'h2', text: 'The Psychology Tracker Approach' },
+      { type: 'p', text: `Treat your emotions as data, not noise. Tag each trade with how you felt entering it, review those tags weekly, and let the win rates per emotional state tell you which mental states you are allowed to trade in and which ones cost you money. Over time you stop trying to be more disciplined through willpower and start removing the specific conditions that trigger your worst decisions. Willpower runs out. A system does not.` },
+      { type: 'related', slug: 'how-to-review-losing-trades', label: 'A structured loss review is where most of these patterns first show up' },
+      { type: 'cta', text: 'Start tracking your trading psychology with LIMITLESS.' },
+    ],
+  },
+  {
+    slug: 'best-trading-journal-nq-futures',
+    category: 'Performance',
+    title: 'Best Trading Journal for NQ Futures Traders in 2026',
+    date: 'June 14, 2026',
+    excerpt: 'NQ futures traders have unique needs. Here is what to look for in a journal.',
+    content: [
+      { type: 'p', text: `NQ futures traders do not trade like everyone else, so a generic journal built for swing-trading stocks will always feel like the wrong tool. The Nasdaq 100 future moves fast, respects the session clock, and punishes sloppy risk management within minutes. If you trade NQ seriously — especially on a funded account — your journal needs to speak your language. Here is what actually matters when you choose one in 2026.` },
+      { type: 'h2', text: 'What NQ Traders Actually Need to Track' },
+      { type: 'p', text: `Trading NQ is a game of context. The same setup that prints in the first thirty minutes of the New York session can chop you to pieces at lunch. That means a useful journal has to capture more than entry and exit — it has to capture when and under what conditions you traded.` },
+      { type: 'ul', items: [
+        'Session and time block — Asia, London, the New York open, lunch, and power hour each behave differently.',
+        'Key levels — the overnight high and low, prior day high and low, and the 9:30 cash open.',
+        'Risk-to-reward — planned versus realized R on every position, not just the dollar result.',
+        'Contract size and drawdown impact — especially when you are trading an evaluation account.',
+      ] },
+      { type: 'p', text: `Without these, your stats are an average of completely different games, and an average of different games tells you nothing about any of them.` },
+      { type: 'h2', text: 'Generic Journals vs Purpose-Built Journals' },
+      { type: 'p', text: `A general-purpose journal treats every market the same. You get a notes field, a P&L column, and a chart. That is fine for an investor checking in weekly. For an intraday futures trader it leaves out the entire structure of your day. You end up bolting on spreadsheets to track sessions and news, which reintroduces exactly the friction that kills journaling habits. A purpose-built futures journal bakes that context in from the start so you never have to leave it.` },
+      { type: 'h2', text: 'The Features That Matter' },
+      { type: 'p', text: `Three features separate a journal you will actually use from one you will abandon:` },
+      { type: 'ul', items: [
+        'Session analytics — automatic breakdowns of performance by time block so you can see your real edge window.',
+        'An economic news calendar — so you know whether a loss came from a setup failing or from walking into CPI.',
+        'Funded account compliance — live tracking of drawdown, daily loss limits, and profit targets against your prop firm rules.',
+      ] },
+      { type: 'p', text: `That last one is not optional if you trade an evaluation. A single trade that breaches a trailing drawdown can end a challenge you spent weeks passing, and no generic journal will warn you before it happens.` },
+      { type: 'callout', text: `A journal that does not understand sessions, news, and drawdown is not a futures journal. It is a spreadsheet with a nicer font.` },
+      { type: 'h2', text: 'Built for Futures Traders' },
+      { type: 'p', text: `LIMITLESS was designed around the way futures traders actually work. Session analytics are automatic, so you can see at a glance that your New York open is carrying your entire month while lunch is quietly bleeding it. The built-in news calendar sits next to your trades, so high-impact events are context, not a surprise. And the funded account tracker monitors your drawdown and targets in real time against the rules of firms like Apex — so compliance is something you can see, not something you hope you remembered.` },
+      { type: 'related', slug: 'how-to-pass-apex-funded-challenge', label: 'On an evaluation? This breaks down exactly how to use a journal to pass it' },
+      { type: 'cta', text: 'Apply for early access to LIMITLESS — built for futures traders.' },
+    ],
+  },
+  {
+    slug: 'how-to-review-losing-trades',
+    category: 'Performance',
+    title: 'How to Review a Losing Trade (The Right Way)',
+    date: 'June 16, 2026',
+    excerpt: 'The difference between traders who improve and those who do not is how they handle losses.',
+    content: [
+      { type: 'p', text: `Every trader takes losses. The thing that separates the ones who get better from the ones who stay stuck is not how often they lose — it is what they do in the ten minutes after. Handle a loss badly and it becomes two losses, then a red day, then a habit. Handle it well and it becomes the single most valuable piece of feedback you will get all week. Reviewing a losing trade the right way is a skill, and like any skill it has a process.` },
+      { type: 'h2', text: 'The Wrong Way to Review a Loss' },
+      { type: 'p', text: `The default human response to a loss is emotional, and the default trading response is to act on that emotion immediately. You feel the sting, you decide the market owes you, and you size into the next setup to make it back. That is not a review — it is revenge, and it is how a manageable loss turns into the kind of day you do not want to log. The other wrong move is the opposite: closing the platform, refusing to look at the trade at all, and carrying a vague sense of failure into tomorrow. Both reactions skip the only useful step, which is understanding what actually happened.` },
+      { type: 'h2', text: 'The Right Way: An Objective Process' },
+      { type: 'p', text: `A good loss review is boring on purpose. You step away from the screen for a few minutes so the emotion drains out, then you come back and look at the trade like an analyst studying someone else's account. No story, no blame — just the sequence of decisions and whether each one was sound given what you knew at the time. The key reframe is this: a loss is not automatically a mistake. You can lose on a perfectly executed trade, and you can win on a reckless one. The review is about decision quality, not outcome.` },
+      { type: 'h2', text: 'The Five Questions to Ask After Every Loss' },
+      { type: 'ol', items: [
+        'Was this a setup I had pre-defined, or did I improvise it in the moment?',
+        'Did I size according to my risk plan, or did I push it?',
+        'Was my entry where it should have been, or did I chase?',
+        'Did I honor my stop, or did I move it once price went against me?',
+        'What was my emotional state when I clicked — and did it influence the trade?',
+      ] },
+      { type: 'p', text: `Answer these honestly and the loss sorts itself into a category almost immediately.` },
+      { type: 'h2', text: 'Categorize Every Loss' },
+      { type: 'p', text: `Not all losses are equal, and lumping them together hides the signal. Sort each one into a bucket:` },
+      { type: 'ul', items: [
+        'Bias error — your read on direction or context was simply wrong.',
+        'Entry error — right idea, bad execution or timing.',
+        'Risk error — sizing or stop placement broke your rules.',
+        'Psychology error — the trade only existed because of emotion.',
+      ] },
+      { type: 'p', text: `A trader losing to bias errors needs to work on analysis. A trader losing to psychology errors needs to work on themselves. They are completely different problems, and you can only tell them apart if you label them.` },
+      { type: 'callout', text: `Outcome tells you whether you won. Category tells you why — and only the why is actionable.` },
+      { type: 'h2', text: 'Build a Loss Pattern Database' },
+      { type: 'p', text: `One categorized loss is a note. Fifty of them is a map. When you can pull up every risk error you have ever made and see they cluster on Fridays, or that every psychology error followed a previous loss within the hour, you stop guessing about what to fix. Consistent review turns scattered pain into a ranked to-do list, and working that list in order is what consistent improvement actually looks like.` },
+      { type: 'related', slug: 'why-traders-lose-money', label: 'The deeper reason behind most psychology-category losses' },
+      { type: 'cta', text: 'Log and review your next trade in LIMITLESS.' },
+    ],
+  },
+  {
+    slug: 'how-to-pass-apex-funded-challenge',
+    category: 'Funded Trading',
+    title: 'How to Pass Your Apex Funded Challenge Using a Trading Journal',
+    date: 'June 17, 2026',
+    excerpt: 'Most traders fail funded challenges not from bad trading — but from poor risk management and emotional decisions.',
+    featured: true,
+    content: [
+      { type: 'p', text: `Passing an Apex evaluation is not primarily a trading problem. Plenty of traders who can read price perfectly well fail challenge after challenge, and it is almost never because their setups stopped working. They fail because an evaluation is a risk-management and discipline test wearing the costume of a trading test. Once you see it that way, a journal stops being optional and becomes the single most useful tool you have for getting funded. Here is how to use one to actually pass.` },
+      { type: 'h2', text: 'The Apex Rules, Briefly' },
+      { type: 'p', text: `Every funded program is a set of constraints, and you cannot manage what you have not clearly defined. An Apex evaluation comes down to three numbers: a profit target you need to reach, a trailing drawdown that follows your account up and ends you if you fall below it, and consistency expectations that stop you from passing on a single lucky day.` },
+      { type: 'ul', items: [
+        'Profit target — the cumulative gain you must reach to pass the evaluation.',
+        'Trailing drawdown — a moving floor that trails your highest equity, realized and unrealized.',
+        'Consistency — no single day can account for too large a share of your total profit.',
+      ] },
+      { type: 'p', text: `The trailing drawdown is the one that quietly kills most accounts. It moves up with your unrealized profit, so giving back a winner can breach you even though your balance never went negative on the day.` },
+      { type: 'h2', text: 'Why Most Traders Fail' },
+      { type: 'p', text: `The failure pattern is remarkably consistent, and none of it is about setups. A trader takes a normal loss, feels the drawdown tighten, and takes an immediate oversized trade to recover — turning a small dip into a breach. Or they have a great morning, get within reach of the target, and size up out of excitement right into a reversal that gives back days of progress. Revenge after losses and greed near the target are responsible for more failed challenges than bad analysis ever will be.` },
+      { type: 'h2', text: 'The Daily Discipline System' },
+      { type: 'p', text: `The fix is a small set of hard rules that take the in-the-moment decision out of your hands. The exact numbers depend on your account size, but the structure is what matters:` },
+      { type: 'ul', items: [
+        'Cap your trades — a maximum of two or three per day, full stop. Most damage happens on trade four.',
+        'Halve your risk after a loss — never increase size to get it back. Smaller after red, not bigger.',
+        'Set a daily stop — a fixed dollar or R loss that ends your day, no exceptions.',
+        'Walk away at the target — once you hit your daily goal, you are done for the session.',
+      ] },
+      { type: 'p', text: `These rules feel restrictive precisely because they block the behavior that fails challenges. That is the point.` },
+      { type: 'h2', text: 'Let the Journal Enforce the Rules' },
+      { type: 'p', text: `Rules you keep in your head are rules you break under pressure. Rules in a journal are rules you can see. Logging every trade against your daily limits turns "I think I am doing okay" into "I have one trade left and I am at sixty percent of my daily stop." That visibility is what actually changes behavior in the moment, because the cost of breaking a rule is staring back at you before you click.` },
+      { type: 'callout', text: `You do not rise to the level of your strategy in an evaluation. You fall to the level of your risk discipline — so make that discipline impossible to ignore.` },
+      { type: 'h2', text: 'Track Drawdown and Project Your Payout' },
+      { type: 'p', text: `Beyond enforcing rules, a journal lets you manage the account like a campaign instead of a series of disconnected days. When you track your trailing drawdown and average daily gain, you can project roughly how many clean sessions stand between you and the target — which kills the urgency that causes oversizing. There is no need to force it today when the math says steady wins get you there in two weeks.` },
+      { type: 'h2', text: 'Score Process, Not Profit' },
+      { type: 'p', text: `The traders who pass consistently judge their day on whether they followed their rules, not on whether they made money. A losing day where you honored every rule is a successful day. A winning day where you broke three rules is a warning. Scoring process over profit is what makes discipline durable enough to survive a real evaluation. LIMITLESS has a built-in funded account tracker designed for exactly this — live drawdown monitoring, daily limits, target projection, and a process score that tells you whether you are trading like someone who deserves to get funded.` },
+      { type: 'related', slug: 'how-to-review-losing-trades', label: 'The review process that makes a process score honest' },
+      { type: 'cta', text: 'Track your funded challenge with the LIMITLESS account tracker.' },
+    ],
+  },
+  {
+    slug: 'what-is-trading-edge',
+    category: 'Strategy',
+    title: 'What Is a Trading Edge and How Do You Find Yours?',
+    date: 'June 18, 2026',
+    excerpt: 'Every profitable trader has an edge. Most do not know what theirs actually is.',
+    content: [
+      { type: 'p', text: `Every consistently profitable trader has an edge. Ask them to define it precisely, though, and a surprising number cannot. They have a feel for what works, but feel is not an edge — it is a story you tell yourself between trades. A real edge is specific, measurable, and provable from your own data. If you cannot describe yours in a sentence backed by numbers, you do not yet know what is making you money, which means you cannot protect it or scale it. Here is how to find it.` },
+      { type: 'h2', text: 'What an Edge Actually Is' },
+      { type: 'p', text: `An edge is a statistical advantage: a repeatable situation where your expected value is positive over a large enough sample. That is it. It is not a secret indicator or a magic setup. It is the combination of how often you win, how much you win when you do, and how much you lose when you are wrong — applied to a specific, recurring market condition. An edge can be a modest win rate with large winners, or a high win rate with small ones. What makes it an edge is that the math comes out positive across many trades, not that any single trade feels good.` },
+      { type: 'h2', text: 'Why Gut Feeling Is Not an Edge' },
+      { type: 'p', text: `Intuition feels like an edge because your brain is a pattern-matching machine, and after enough screen time it genuinely picks up on real structure. The problem is that the same machine is hopelessly biased about its own track record. It remembers the gut call that nailed the top and forgets the five that did not. Until your feel is validated against a complete record, you cannot tell the difference between genuine pattern recognition and selective memory — and trading real size on the second one is how good runs end.` },
+      { type: 'h2', text: 'Find Your Edge in Your Data' },
+      { type: 'p', text: `Your edge is already in your trade history, waiting to be measured. The way to find it is to slice your results along the dimensions that define your trading and look for where your expectancy is clearly positive:` },
+      { type: 'ul', items: [
+        'By session and time of day — when are you actually making money?',
+        'By setup — which named patterns carry your account and which just feel productive?',
+        'By instrument — are you genuinely better on one market than the others you trade?',
+        'By market condition — trend versus range, high versus low volatility.',
+      ] },
+      { type: 'p', text: `When you do this honestly, the result is almost always narrower than you expected. Most traders discover that a small slice of their activity produces nearly all of their profit, and the rest is noise that adds risk without adding return.` },
+      { type: 'h2', text: 'The Minimum Sample Size' },
+      { type: 'p', text: `One caveat ruins most self-analysis: you need enough trades for the numbers to mean anything. Ten trades tell you nothing — a coin flip can produce a ten-trade winning streak. Aim for at least fifty trades in a given category before you trust its win rate, and more if you can. This is exactly why the journaling habit matters. The edge is a property of the sample, and you cannot study a sample you never recorded.` },
+      { type: 'callout', text: `An edge you cannot measure is a belief. An edge you can measure across fifty trades is an asset. The difference is a journal.` },
+      { type: 'h2', text: 'Let the Analytics Reveal It' },
+      { type: 'p', text: `This is where good analytics earn their keep. LIMITLESS automatically breaks your trades down by session, setup, instrument, and condition, and surfaces the expectancy of each — so your real edge stops being a hunch and becomes a number you can point to. Once you can see exactly where your money comes from, the strategy becomes obvious: do more of the slice that works, cut the slice that does not, and stop confusing activity with edge.` },
+      { type: 'related', slug: 'how-to-keep-a-trading-journal', label: 'None of this works without the habit of logging every trade' },
+      { type: 'cta', text: 'Discover your real edge with LIMITLESS analytics.' },
+    ],
+  },
+]
+
+// ─── BLOG: SHARED RESPONSIVE CSS ─────────────────────────────────────────────
+const BLOG_CSS = `
+  .blog-grid { display: grid; grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 1024px) { .blog-grid { grid-template-columns: repeat(2, 1fr) !important; } }
+  @media (max-width: 640px) { .blog-grid { grid-template-columns: 1fr !important; } }
+  @media (max-width: 860px) {
+    .featured-card { grid-template-columns: 1fr !important; }
+    .ft-thumb { height: 200px !important; }
+    .article-wrap { padding-left: 22px !important; padding-right: 22px !important; }
+  }
+  .blog-search::placeholder { color: #555; }
+`
 
 // ─── DESIGN TOKENS ───────────────────────────────────────────────────────────
 const S = {
@@ -355,6 +630,7 @@ function DashboardMockup() {
 
 // ─── NAVBAR ──────────────────────────────────────────────────────────────────
 function Navbar() {
+  const { route, navigate } = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
   const [visible, setVisible] = useState(true)
   const [scrolled, setScrolled] = useState(false)
@@ -371,10 +647,20 @@ function Navbar() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const scrollTo = (id) => {
+  // Scroll to a home-page section — navigate home first if we're elsewhere
+  const scrollTo = (label) => {
     setMenuOpen(false)
-    smoothScrollToId(id.toLowerCase().replace(/\s+/g, '-'))
+    const id = label.toLowerCase().replace(/\s+/g, '-')
+    if (route.page === 'home') {
+      smoothScrollToId(id)
+    } else {
+      navigate('/')
+      setTimeout(() => smoothScrollToId(id), 120)
+    }
   }
+  const goBlog = () => { setMenuOpen(false); navigate('/blog') }
+  const goHome = () => { setMenuOpen(false); navigate('/') }
+  const onBlog = route.page === 'blog' || route.page === 'article'
 
   return (
     <>
@@ -396,7 +682,7 @@ function Navbar() {
         {/* Logo */}
         <div
           style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
-          onClick={smoothScrollToTop}
+          onClick={goHome}
         >
           <img src="/logo2.png" height="28" alt="Limitless logo" style={{ display: 'block' }} />
           <span style={{ fontWeight: 700, fontSize: '17px', letterSpacing: '-0.3px', color: S.text }}>LIMITLESS</span>
@@ -415,6 +701,14 @@ function Navbar() {
               {link}
             </button>
           ))}
+          <button
+            onClick={goBlog}
+            style={{ background: 'none', border: 'none', color: onBlog ? S.text : S.muted, fontSize: '14px', fontWeight: 500, cursor: 'pointer', padding: '6px 14px', borderRadius: '8px', transition: 'color 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.color = S.text}
+            onMouseLeave={e => e.currentTarget.style.color = onBlog ? S.text : S.muted}
+          >
+            Blog
+          </button>
         </div>
 
         {/* Desktop right CTAs */}
@@ -462,6 +756,12 @@ function Navbar() {
                 {link}
               </button>
             ))}
+            <button
+              onClick={goBlog}
+              style={{ background: 'none', border: 'none', color: S.text, fontSize: '16px', fontWeight: 500, cursor: 'pointer', padding: '14px 0', textAlign: 'left', borderBottom: `1px solid ${S.border}` }}
+            >
+              Blog
+            </button>
             <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
               <button onClick={() => window.location.href = APP_URL} style={{ flex: 1, background: 'none', border: `1px solid ${S.border}`, color: S.text, fontSize: '15px', fontWeight: 500, cursor: 'pointer', padding: '12px', borderRadius: '10px' }}>Login</button>
               <button onClick={() => window.location.href = APP_URL} style={{ flex: 1, background: S.text, border: 'none', color: '#000', fontSize: '15px', fontWeight: 700, cursor: 'pointer', padding: '12px', borderRadius: '10px' }}>Apply Now</button>
@@ -1064,49 +1364,430 @@ function FinalCTA() {
 
 // ─── FOOTER ──────────────────────────────────────────────────────────────────
 function Footer() {
-  const scrollTo = (id) => smoothScrollToId(id)
+  const { route, navigate } = useRouter()
+
+  const scrollTo = (id) => {
+    if (route.page === 'home') smoothScrollToId(id)
+    else { navigate('/'); setTimeout(() => smoothScrollToId(id), 120) }
+  }
+
+  const linkStyle = { background: 'none', border: 'none', color: S.muted, fontSize: '13px', cursor: 'pointer', padding: '5px 0', textAlign: 'left', transition: 'color 0.2s', display: 'block', lineHeight: 1.5 }
+  const hoverOn = e => e.currentTarget.style.color = S.text
+  const hoverOff = e => e.currentTarget.style.color = S.muted
+  const colHead = { fontSize: '11px', color: S.muted2, textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 600, margin: '0 0 14px' }
 
   return (
-    <footer style={{ position: 'relative', zIndex: 1, borderTop: `1px solid ${S.border}`, padding: '48px 40px 40px' }}>
-      <div style={{ maxWidth: '1160px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '28px' }}>
-        {/* Brand */}
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-            <img src="/logo2.png" height="24" alt="Limitless logo" style={{ display: 'block' }} />
-            <span style={{ fontWeight: 700, fontSize: '15px', color: S.text, letterSpacing: '-0.2px' }}>LIMITLESS</span>
+    <footer style={{ position: 'relative', zIndex: 1, borderTop: `1px solid ${S.border}`, padding: '56px 40px 40px' }}>
+      <div style={{ maxWidth: '1160px', margin: '0 auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1.6fr', gap: '40px', marginBottom: '44px' }} className="footer-grid">
+          {/* Brand */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', cursor: 'pointer', width: 'fit-content' }} onClick={() => navigate('/')}>
+              <img src="/logo2.png" height="24" alt="Limitless logo" style={{ display: 'block' }} />
+              <span style={{ fontWeight: 700, fontSize: '15px', color: S.text, letterSpacing: '-0.2px' }}>LIMITLESS</span>
+            </div>
+            <p style={{ fontSize: '13px', color: S.muted2, margin: 0, lineHeight: 1.6, maxWidth: '240px' }}>The private trading journal built for serious futures and forex traders.</p>
           </div>
-          <p style={{ fontSize: '13px', color: S.muted2, margin: 0 }}>Built for serious traders</p>
+
+          {/* Product */}
+          <div>
+            <p style={colHead}>Product</p>
+            <button style={linkStyle} onMouseEnter={hoverOn} onMouseLeave={hoverOff} onClick={() => scrollTo('features')}>Features</button>
+            <button style={linkStyle} onMouseEnter={hoverOn} onMouseLeave={hoverOff} onClick={() => scrollTo('early-access')}>Early Access</button>
+            <button style={linkStyle} onMouseEnter={hoverOn} onMouseLeave={hoverOff} onClick={() => scrollTo('faq')}>FAQ</button>
+            <button style={linkStyle} onMouseEnter={hoverOn} onMouseLeave={hoverOff} onClick={() => navigate('/blog')}>Blog</button>
+            <button style={linkStyle} onMouseEnter={hoverOn} onMouseLeave={hoverOff} onClick={() => window.location.href = APP_URL}>Login</button>
+          </div>
+
+          {/* Blog */}
+          <div>
+            <p style={colHead}>From the Blog</p>
+            {ARTICLES.map(a => (
+              <button key={a.slug} style={linkStyle} onMouseEnter={hoverOn} onMouseLeave={hoverOff} onClick={() => navigate(`/blog/${a.slug}`)}>{a.title}</button>
+            ))}
+          </div>
         </div>
 
-        {/* Links */}
-        <nav style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-          {[['Features', 'features'], ['Early Access', 'early-access'], ['FAQ', 'faq'], ['Login', null]].map(([label, id]) => (
-            <button
-              key={label}
-              onClick={() => id ? scrollTo(id) : window.location.href = APP_URL}
-              style={{ background: 'none', border: 'none', color: S.muted, fontSize: '13px', cursor: 'pointer', padding: '6px 12px', borderRadius: '6px', transition: 'color 0.2s' }}
-              onMouseEnter={e => e.currentTarget.style.color = S.text}
-              onMouseLeave={e => e.currentTarget.style.color = S.muted}
-            >
-              {label}
-            </button>
-          ))}
-        </nav>
-
-        <p style={{ fontSize: '13px', color: S.muted2, margin: 0 }}>© 2026 LIMITLESS. All rights reserved.</p>
+        <div style={{ borderTop: `1px solid ${S.border}`, paddingTop: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+          <p style={{ fontSize: '13px', color: S.muted2, margin: 0 }}>© 2026 LIMITLESS. All rights reserved.</p>
+          <p style={{ fontSize: '13px', color: S.muted2, margin: 0 }}>Built for serious traders</p>
+        </div>
       </div>
+      <style>{`
+        @media (max-width: 768px) {
+          .footer-grid { grid-template-columns: 1fr !important; gap: 32px !important; }
+        }
+      `}</style>
     </footer>
   )
 }
 
-// ─── APP ROOT ─────────────────────────────────────────────────────────────────
-export default function App() {
+// ─── BLOG: CATEGORY THUMB (gradient "cover" with category accent) ─────────────
+function CategoryThumb({ category, height = 170, big = false }) {
+  const color = CATEGORY_COLORS[category] || '#888888'
   return (
-    <div style={{ background: S.bg, minHeight: '100vh', position: 'relative' }}>
-      <GrainOverlay />
-      <AuroraBlobs />
-      <CursorEffect />
-      <Navbar />
+    <div style={{
+      position: 'relative', height, width: '100%', flexShrink: 0, overflow: 'hidden',
+      background: `radial-gradient(circle at 28% 22%, ${hexA(color, 0.20)} 0%, transparent 58%), linear-gradient(135deg, #121212 0%, #0a0a0a 100%)`,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      borderBottom: `1px solid ${S.border}`,
+    }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: color, boxShadow: `0 0 18px ${hexA(color, 0.6)}` }} />
+      <span style={{ fontSize: big ? 'clamp(28px, 4vw, 40px)' : '22px', fontWeight: 800, letterSpacing: '-0.5px', color: hexA(color, color === '#ffffff' ? 0.85 : 0.92), textTransform: 'uppercase', textAlign: 'center', padding: '0 20px', lineHeight: 1.1 }}>{category}</span>
+      <span style={{ position: 'absolute', bottom: '12px', left: '16px', fontSize: '9px', letterSpacing: '2px', color: S.muted2, textTransform: 'uppercase', fontWeight: 600 }}>LIMITLESS Journal</span>
+    </div>
+  )
+}
+
+// ─── BLOG: CATEGORY BADGE ────────────────────────────────────────────────────
+function CategoryBadge({ category, small = false }) {
+  const color = CATEGORY_COLORS[category] || '#888888'
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: small ? '10px' : '11px', fontWeight: 700, letterSpacing: '0.5px', color: color === '#ffffff' ? '#fff' : color, background: hexA(color, 0.1), border: `1px solid ${hexA(color, 0.3)}`, borderRadius: '100px', padding: small ? '3px 10px' : '5px 13px', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
+      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: color, boxShadow: `0 0 8px ${hexA(color, 0.8)}` }} />
+      {category}
+    </span>
+  )
+}
+
+// ─── BLOG: ARTICLE CARD ──────────────────────────────────────────────────────
+function ArticleCard({ article, index = 0 }) {
+  const { navigate } = useRouter()
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-50px' }}
+      transition={{ duration: 0.5, delay: (index % 3) * 0.08, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={{ y: -6 }}
+      onClick={() => navigate(`/blog/${article.slug}`)}
+      style={{ cursor: 'pointer', background: S.card, border: `1px solid ${S.border}`, borderRadius: S.radius, overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%', transition: 'border-color 0.25s, box-shadow 0.25s' }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = '#333'; e.currentTarget.style.boxShadow = '0 20px 50px rgba(0,0,0,0.5)' }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = S.border; e.currentTarget.style.boxShadow = 'none' }}
+    >
+      <CategoryThumb category={article.category} height={170} />
+      <div style={{ padding: '22px 22px 24px', display: 'flex', flexDirection: 'column', flex: 1 }}>
+        <div style={{ marginBottom: '14px' }}><CategoryBadge category={article.category} small /></div>
+        <h3 style={{ fontSize: '18px', fontWeight: 700, color: S.text, letterSpacing: '-0.4px', lineHeight: 1.3, margin: '0 0 10px' }}>{article.title}</h3>
+        <p style={{ fontSize: '14px', lineHeight: 1.6, color: S.muted, margin: '0 0 18px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{article.excerpt}</p>
+        <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '14px', fontSize: '12px', color: S.muted2 }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}><Clock size={12} /> {readTimeFor(article)}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}><Calendar size={12} /> {article.date}</span>
+        </div>
+        <div style={{ marginTop: '16px', fontSize: '13px', fontWeight: 600, color: S.text, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>Read Article <ArrowRight size={14} /></div>
+      </div>
+    </motion.article>
+  )
+}
+
+// ─── BLOG: INDEX PAGE ────────────────────────────────────────────────────────
+function BlogIndex() {
+  usePageMeta(
+    'The LIMITLESS Blog — Trading Insights for Serious Traders',
+    'Trading insights, journal strategies, and performance breakdowns for serious traders. Journaling, psychology, funded trading, and how to find your edge.',
+  )
+  const { navigate } = useRouter()
+  const [query, setQuery] = useState('')
+  const [category, setCategory] = useState('All')
+
+  const featured = useMemo(() => ARTICLES.find(a => a.featured) || ARTICLES[0], [])
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return ARTICLES.filter(a => {
+      const matchCat = category === 'All' || a.category === category
+      const matchQ = !q || a.title.toLowerCase().includes(q) || a.excerpt.toLowerCase().includes(q) || a.category.toLowerCase().includes(q)
+      return matchCat && matchQ
+    })
+  }, [query, category])
+
+  const showFeatured = category === 'All' && !query.trim()
+  const gridArticles = showFeatured ? filtered.filter(a => a.slug !== featured.slug) : filtered
+
+  return (
+    <main style={{ position: 'relative', zIndex: 1 }}>
+      {/* Hero */}
+      <section style={{ padding: '150px 40px 24px', textAlign: 'center' }}>
+        <FadeIn>
+          <p style={{ fontSize: '11px', color: S.muted2, textTransform: 'uppercase', letterSpacing: '2.5px', marginBottom: '18px' }}>The Journal</p>
+          <h1 style={{ fontSize: 'clamp(36px, 5.5vw, 60px)', fontWeight: 800, color: S.text, letterSpacing: '-2.5px', lineHeight: 1.05, margin: '0 0 20px' }}>The LIMITLESS Blog</h1>
+          <p style={{ fontSize: '17px', color: S.muted, lineHeight: 1.6, maxWidth: '560px', margin: '0 auto' }}>Trading insights, journal strategies, and performance breakdowns for serious traders.</p>
+        </FadeIn>
+      </section>
+
+      <section style={{ padding: '20px 40px 100px' }}>
+        <div style={{ maxWidth: '1160px', margin: '0 auto' }}>
+          {/* Search */}
+          <div style={{ position: 'relative', maxWidth: '460px', margin: '0 auto 28px' }}>
+            <Search size={16} color={S.muted} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+            <input
+              className="blog-search"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Search articles..."
+              style={{ width: '100%', background: S.card, border: `1px solid ${S.border}`, borderRadius: '12px', padding: '13px 16px 13px 44px', color: S.text, fontSize: '14px', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s' }}
+              onFocus={e => e.currentTarget.style.borderColor = '#444'}
+              onBlur={e => e.currentTarget.style.borderColor = S.border}
+            />
+          </div>
+
+          {/* Category pills */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center', marginBottom: '48px' }}>
+            {BLOG_CATEGORIES.map(cat => {
+              const active = category === cat
+              const color = cat === 'All' ? '#ffffff' : (CATEGORY_COLORS[cat] || '#ffffff')
+              return (
+                <button
+                  key={cat}
+                  onClick={() => setCategory(cat)}
+                  style={{
+                    fontSize: '13px', fontWeight: 600, cursor: 'pointer', padding: '8px 16px', borderRadius: '100px',
+                    border: `1px solid ${active ? hexA(color, 0.5) : S.border}`,
+                    background: active ? hexA(color, 0.12) : 'transparent',
+                    color: active ? (color === '#ffffff' ? '#fff' : color) : S.muted,
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={e => { if (!active) e.currentTarget.style.color = S.text }}
+                  onMouseLeave={e => { if (!active) e.currentTarget.style.color = S.muted }}
+                >
+                  {cat}
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Featured */}
+          {showFeatured && (
+            <FadeIn>
+              <motion.article
+                whileHover={{ y: -4 }}
+                onClick={() => navigate(`/blog/${featured.slug}`)}
+                className="featured-card"
+                style={{ cursor: 'pointer', display: 'grid', gridTemplateColumns: '1.1fr 1fr', background: S.card, border: `1px solid ${S.border}`, borderRadius: '18px', overflow: 'hidden', marginBottom: '48px', transition: 'border-color 0.25s, box-shadow 0.25s' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = '#333'; e.currentTarget.style.boxShadow = '0 24px 60px rgba(0,0,0,0.5)' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = S.border; e.currentTarget.style.boxShadow = 'none' }}
+              >
+                <div className="ft-thumb" style={{ height: '100%' }}>
+                  <CategoryThumb category={featured.category} height="100%" big />
+                </div>
+                <div style={{ padding: '40px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#000', background: '#fff', borderRadius: '100px', padding: '4px 10px' }}>Featured</span>
+                    <CategoryBadge category={featured.category} small />
+                  </div>
+                  <h2 style={{ fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: 800, color: S.text, letterSpacing: '-1px', lineHeight: 1.2, margin: '0 0 14px' }}>{featured.title}</h2>
+                  <p style={{ fontSize: '15px', lineHeight: 1.65, color: S.muted, margin: '0 0 22px', maxWidth: '440px' }}>{featured.excerpt}</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '12px', color: S.muted2, marginBottom: '24px' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}><Clock size={13} /> {readTimeFor(featured)}</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}><Calendar size={13} /> {featured.date}</span>
+                  </div>
+                  <span style={{ fontSize: '14px', fontWeight: 700, color: S.text, display: 'inline-flex', alignItems: 'center', gap: '7px' }}>Read Article <ArrowRight size={15} /></span>
+                </div>
+              </motion.article>
+            </FadeIn>
+          )}
+
+          {/* Grid */}
+          {gridArticles.length > 0 ? (
+            <div className="blog-grid" style={{ gap: '20px' }}>
+              {gridArticles.map((a, i) => <ArticleCard key={a.slug} article={a} index={i} />)}
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '60px 20px', color: S.muted }}>
+              <p style={{ fontSize: '16px', margin: '0 0 6px', color: S.text, fontWeight: 600 }}>No articles found</p>
+              <p style={{ fontSize: '14px', margin: 0 }}>Try a different search or category.</p>
+            </div>
+          )}
+        </div>
+      </section>
+      <style>{BLOG_CSS}</style>
+    </main>
+  )
+}
+
+// ─── BLOG: READING PROGRESS BAR ──────────────────────────────────────────────
+function ReadingProgressBar({ color = '#ffffff' }) {
+  const { scrollYProgress } = useScroll()
+  const scaleX = useSpring(scrollYProgress, { stiffness: 120, damping: 30, mass: 0.3 })
+  return (
+    <motion.div
+      aria-hidden="true"
+      style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '3px', transformOrigin: '0%', scaleX, background: color, boxShadow: `0 0 12px ${hexA(color, 0.7)}`, zIndex: 1001 }}
+    />
+  )
+}
+
+// ─── BLOG: ARTICLE PAGE ──────────────────────────────────────────────────────
+function ArticlePage({ slug }) {
+  const { navigate } = useRouter()
+  const article = ARTICLES.find(a => a.slug === slug)
+
+  usePageMeta(
+    article ? `${article.title} — LIMITLESS Blog` : 'Article Not Found — LIMITLESS Blog',
+    article ? article.excerpt : 'The article you are looking for could not be found.',
+  )
+
+  useEffect(() => { window.scrollTo(0, 0) }, [slug])
+
+  if (!article) {
+    return (
+      <section style={{ position: 'relative', zIndex: 1, minHeight: '70vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '140px 40px', textAlign: 'center' }}>
+        <h1 style={{ fontSize: '32px', fontWeight: 800, color: S.text, letterSpacing: '-1px', margin: '0 0 14px' }}>Article not found</h1>
+        <p style={{ fontSize: '15px', color: S.muted, margin: '0 0 28px' }}>The article you are looking for does not exist or has moved.</p>
+        <button onClick={() => navigate('/blog')} style={{ background: S.text, border: 'none', color: '#000', fontSize: '15px', fontWeight: 700, cursor: 'pointer', padding: '13px 28px', borderRadius: '11px' }}>← Back to Blog</button>
+      </section>
+    )
+  }
+
+  const color = CATEGORY_COLORS[article.category] || '#ffffff'
+  const toc = tocFor(article.content)
+  const related = relatedArticles(article, 3)
+
+  const renderBlock = (block, i) => {
+    switch (block.type) {
+      case 'h2':
+        return <h2 key={i} id={slugify(block.text)} style={{ fontSize: 'clamp(26px, 3.4vw, 32px)', fontWeight: 800, color: S.text, letterSpacing: '-0.8px', lineHeight: 1.25, margin: '50px 0 18px', scrollMarginTop: '90px' }}>{block.text}</h2>
+      case 'h3':
+        return <h3 key={i} id={slugify(block.text)} style={{ fontSize: '24px', fontWeight: 700, color: S.text, letterSpacing: '-0.5px', lineHeight: 1.3, margin: '36px 0 14px', scrollMarginTop: '90px' }}>{block.text}</h3>
+      case 'p':
+        return <p key={i} style={{ fontSize: '18px', lineHeight: 1.8, color: '#c4c4c4', margin: '0 0 22px' }}>{block.text}</p>
+      case 'ul':
+        return (
+          <ul key={i} style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {block.items.map((it, j) => (
+              <li key={j} style={{ display: 'flex', gap: '12px', fontSize: '18px', lineHeight: 1.7, color: '#c4c4c4' }}>
+                <span style={{ flexShrink: 0, marginTop: '11px', width: '6px', height: '6px', borderRadius: '50%', background: color }} />
+                <span>{it}</span>
+              </li>
+            ))}
+          </ul>
+        )
+      case 'ol':
+        return (
+          <ol key={i} style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {block.items.map((it, j) => (
+              <li key={j} style={{ display: 'flex', gap: '14px', fontSize: '18px', lineHeight: 1.7, color: '#c4c4c4' }}>
+                <span style={{ flexShrink: 0, width: '28px', height: '28px', borderRadius: '50%', background: '#141414', border: `1px solid ${S.border}`, color: S.text, fontSize: '13px', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '2px' }}>{j + 1}</span>
+                <span>{it}</span>
+              </li>
+            ))}
+          </ol>
+        )
+      case 'callout':
+        return <div key={i} style={{ background: '#0d0d0d', borderLeft: `3px solid ${color}`, borderTop: `1px solid ${S.border}`, borderRight: `1px solid ${S.border}`, borderBottom: `1px solid ${S.border}`, borderRadius: '0 12px 12px 0', padding: '20px 24px', margin: '32px 0', fontSize: '18px', lineHeight: 1.7, color: '#e6e6e6', fontWeight: 500 }}>{block.text}</div>
+      case 'related': {
+        const target = ARTICLES.find(a => a.slug === block.slug)
+        if (!target) return null
+        const tcolor = CATEGORY_COLORS[target.category] || '#888888'
+        return (
+          <button key={i} onClick={() => navigate(`/blog/${target.slug}`)} style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%', textAlign: 'left', cursor: 'pointer', background: hexA(tcolor, 0.06), border: `1px solid ${hexA(tcolor, 0.25)}`, borderRadius: '12px', padding: '16px 20px', margin: '28px 0', transition: 'background 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.background = hexA(tcolor, 0.12)}
+            onMouseLeave={e => e.currentTarget.style.background = hexA(tcolor, 0.06)}>
+            <span style={{ fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: tcolor === '#ffffff' ? '#fff' : tcolor, fontWeight: 700 }}>Related Reading</span>
+            <span style={{ fontSize: '16px', fontWeight: 600, color: S.text, display: 'inline-flex', alignItems: 'center', gap: '8px', lineHeight: 1.4 }}>{block.label || target.title} <ArrowRight size={15} style={{ flexShrink: 0 }} /></span>
+          </button>
+        )
+      }
+      case 'cta':
+        return (
+          <div key={i} style={{ textAlign: 'center', background: 'radial-gradient(ellipse 80% 100% at 50% 0%, rgba(255,255,255,0.06), transparent 70%)', border: `1px solid ${S.border}`, borderRadius: '16px', padding: '36px 28px', margin: '40px 0 8px' }}>
+            <p style={{ fontSize: '18px', fontWeight: 600, color: S.text, margin: '0 0 18px', lineHeight: 1.4 }}>{block.text}</p>
+            <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} onClick={() => window.location.href = APP_URL} style={{ background: S.text, border: 'none', color: '#000', fontSize: '15px', fontWeight: 700, cursor: 'pointer', padding: '13px 30px', borderRadius: '11px' }}>Apply for Early Access →</motion.button>
+          </div>
+        )
+      default:
+        return null
+    }
+  }
+
+  return (
+    <>
+      <ReadingProgressBar color={color} />
+
+      <article className="article-wrap" style={{ position: 'relative', zIndex: 1, maxWidth: '720px', margin: '0 auto', padding: '120px 40px 60px' }}>
+        {/* Back */}
+        <button onClick={() => navigate('/blog')} style={{ background: 'none', border: 'none', color: S.muted, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '7px', fontSize: '14px', fontWeight: 500, padding: 0, marginBottom: '28px', transition: 'color 0.2s' }}
+          onMouseEnter={e => e.currentTarget.style.color = S.text}
+          onMouseLeave={e => e.currentTarget.style.color = S.muted}>
+          <ArrowLeft size={16} /> Blog
+        </button>
+
+        {/* Header */}
+        <div style={{ marginBottom: '18px' }}><CategoryBadge category={article.category} /></div>
+        <h1 style={{ fontSize: 'clamp(30px, 4.8vw, 44px)', fontWeight: 800, color: S.text, letterSpacing: '-1.5px', lineHeight: 1.12, margin: '0 0 24px' }}>{article.title}</h1>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', paddingBottom: '32px', borderBottom: `1px solid ${S.border}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: '#161616', border: `1px solid ${S.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <img src="/logo2.png" height="18" alt="" style={{ display: 'block' }} />
+            </div>
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: 600, color: S.text }}>LIMITLESS Team</div>
+              <div style={{ fontSize: '12px', color: S.muted2 }}>Author</div>
+            </div>
+          </div>
+          <span style={{ width: '1px', height: '24px', background: S.border }} />
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: S.muted }}><Calendar size={14} /> {article.date}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: S.muted }}><Clock size={14} /> {readTimeFor(article)}</span>
+        </div>
+
+        {/* Table of contents */}
+        {toc.length > 0 && (
+          <nav style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: '14px', padding: '22px 24px', margin: '32px 0 12px' }}>
+            <p style={{ fontSize: '11px', color: S.muted2, textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 600, margin: '0 0 14px' }}>In This Article</p>
+            <ol style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {toc.map((t, i) => (
+                <li key={t.id}>
+                  <button onClick={() => document.getElementById(t.id)?.scrollIntoView({ behavior: 'smooth' })} style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer', color: S.muted, fontSize: '14px', lineHeight: 1.4, display: 'flex', gap: '10px', transition: 'color 0.2s' }}
+                    onMouseEnter={e => e.currentTarget.style.color = S.text}
+                    onMouseLeave={e => e.currentTarget.style.color = S.muted}>
+                    <span style={{ color: S.muted2, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{String(i + 1).padStart(2, '0')}</span>
+                    <span>{t.text}</span>
+                  </button>
+                </li>
+              ))}
+            </ol>
+          </nav>
+        )}
+
+        {/* Body */}
+        <div style={{ marginTop: '8px' }}>
+          {article.content.map(renderBlock)}
+        </div>
+      </article>
+
+      {/* Related */}
+      <section style={{ position: 'relative', zIndex: 1, borderTop: `1px solid ${S.border}`, padding: '64px 40px' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+          <h2 style={{ fontSize: '13px', color: S.muted2, textTransform: 'uppercase', letterSpacing: '2px', margin: '0 0 28px', fontWeight: 600 }}>Related Articles</h2>
+          <div className="blog-grid" style={{ gap: '20px' }}>
+            {related.map((a, i) => <ArticleCard key={a.slug} article={a} index={i} />)}
+          </div>
+        </div>
+      </section>
+
+      {/* Bottom CTA */}
+      <section style={{ position: 'relative', zIndex: 1, padding: '80px 40px 110px', textAlign: 'center', overflow: 'hidden' }}>
+        <div aria-hidden="true" style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 60% 60% at 50% 50%, rgba(255,255,255,0.05), transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ maxWidth: '560px', margin: '0 auto', position: 'relative' }}>
+          <h2 style={{ fontSize: 'clamp(26px, 3.5vw, 38px)', fontWeight: 800, color: S.text, letterSpacing: '-1.5px', lineHeight: 1.15, margin: '0 0 18px' }}>Start journaling your trades today</h2>
+          <p style={{ fontSize: '16px', color: S.muted, lineHeight: 1.6, margin: '0 0 32px' }}>Join the serious traders using LIMITLESS to track every trade, fix every mistake, and build a real edge.</p>
+          <motion.button whileHover={{ scale: 1.04, boxShadow: '0 0 50px rgba(255,255,255,0.18)' }} whileTap={{ scale: 0.97 }} onClick={() => window.location.href = APP_URL} style={{ background: S.text, border: 'none', color: '#000', fontSize: '16px', fontWeight: 700, cursor: 'pointer', padding: '15px 36px', borderRadius: '12px', boxShadow: '0 0 40px rgba(255,255,255,0.1)' }}>Apply for Early Access →</motion.button>
+        </div>
+      </section>
+      <style>{BLOG_CSS}</style>
+    </>
+  )
+}
+
+// ─── HOME PAGE ───────────────────────────────────────────────────────────────
+function HomePage() {
+  usePageMeta(
+    'LIMITLESS — Trading Journal for Serious Traders',
+    'The private trading journal built for serious futures and forex traders. Track trades, analyze performance, fix mistakes, and become consistent. Early access open.',
+  )
+  return (
+    <>
       <Hero />
       <Marquee />
       <AnimatedSection><SocialProof /></AnimatedSection>
@@ -1115,7 +1796,42 @@ export default function App() {
       <AnimatedSection><EarlyAccess /></AnimatedSection>
       <AnimatedSection><FAQ /></AnimatedSection>
       <AnimatedSection><FinalCTA /></AnimatedSection>
-      <Footer />
-    </div>
+    </>
+  )
+}
+
+// ─── APP ROOT ─────────────────────────────────────────────────────────────────
+export default function App() {
+  const [route, setRoute] = useState(() => (typeof window !== 'undefined' ? parseRoute(window.location.pathname) : { page: 'home' }))
+
+  useEffect(() => {
+    const onPop = () => setRoute(parseRoute(window.location.pathname))
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
+
+  const navigate = useCallback((path) => {
+    if (path === window.location.pathname) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+    window.history.pushState({}, '', path)
+    setRoute(parseRoute(path))
+    window.scrollTo({ top: 0 })
+  }, [])
+
+  return (
+    <RouterContext.Provider value={{ route, navigate }}>
+      <div style={{ background: S.bg, minHeight: '100vh', position: 'relative' }}>
+        <GrainOverlay />
+        <AuroraBlobs />
+        <CursorEffect />
+        <Navbar />
+        {route.page === 'home' && <HomePage />}
+        {route.page === 'blog' && <BlogIndex />}
+        {route.page === 'article' && <ArticlePage slug={route.slug} />}
+        <Footer />
+      </div>
+    </RouterContext.Provider>
   )
 }
