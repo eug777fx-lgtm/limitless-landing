@@ -52,6 +52,17 @@ const APP_URL = 'https://app.limitless-journal.com'
 const smoothScrollToId = (id) => {
   document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
 }
+
+// ─── SUPABASE ────────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://fngdbdcpfamcoctmdhyc.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZuZ2RiZGNwZmFtY29jdG1kaHljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMzg1NjAsImV4cCI6MjA5MDgxNDU2MH0.WfHTTFZqBGXOTll3qcr9OOa5w2vXdurtYW-LL4tqhYY'
+const SUPABASE_HEADERS = { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
+const SPOTS_TOTAL = 100
+
+// Shared early-access capacity — drives the Apply → Waitlist auto-switch everywhere
+const SpotsContext = createContext({ approvedCount: null, isFull: false, spotsTotal: SPOTS_TOTAL })
+const useSpots = () => useContext(SpotsContext)
+
 // ─── BLOG: ROUTING (state-based, no react-router) ────────────────────────────
 const RouterContext = createContext({ route: { page: 'home' }, navigate: () => {} })
 const useRouter = () => useContext(RouterContext)
@@ -449,13 +460,13 @@ function CountDown({ from, to, duration = 1.5, style = {} }) {
 
 // ─── MARQUEE TICKER ───────────────────────────────────────────────────────────
 function Marquee() {
-  const items = ['NQ', 'ES', 'EUR/USD', 'GBP/USD', 'BTC', 'Gold', 'Silver', 'Forex', 'Futures', 'Crypto']
+  const items = ['NQ', 'ES', 'EUR/USD', 'XAUUSD', 'GBP/USD', 'Futures', 'Forex', 'Funded Trading', 'ICT', 'Smart Money']
   const block = items.join(' · ') + ' · '
 
   return (
     <div style={{
       position: 'relative', zIndex: 1,
-      height: '44px', display: 'flex', alignItems: 'center', overflow: 'hidden',
+      height: '40px', display: 'flex', alignItems: 'center', overflow: 'hidden',
       borderTop: `1px solid #1f1f1f`, borderBottom: `1px solid #1f1f1f`,
       background: 'rgba(10,10,10,0.6)', backdropFilter: 'blur(8px)',
       WebkitBackdropFilter: 'blur(8px)',
@@ -468,7 +479,7 @@ function Marquee() {
         style={{ display: 'flex', whiteSpace: 'nowrap', flexShrink: 0, willChange: 'transform' }}
       >
         {[...Array(8)].map((_, i) => (
-          <span key={i} style={{ fontSize: '12px', color: '#666', fontWeight: 600, letterSpacing: '2px', textTransform: 'uppercase', padding: '0 18px' }}>{block}</span>
+          <span key={i} style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', fontWeight: 600, letterSpacing: '2px', textTransform: 'uppercase', padding: '0 18px' }}>{block}</span>
         ))}
       </motion.div>
     </div>
@@ -662,6 +673,15 @@ function Navbar() {
   const goHome = () => { setMenuOpen(false); navigate('/') }
   const onBlog = route.page === 'blog' || route.page === 'article'
 
+  const { isFull } = useSpots()
+  const goWaitlist = () => {
+    setMenuOpen(false)
+    if (route.page === 'home') smoothScrollToId('waitlist')
+    else { navigate('/'); setTimeout(() => smoothScrollToId('waitlist'), 120) }
+  }
+  const ctaClick = () => { isFull ? goWaitlist() : (window.location.href = APP_URL) }
+  const ctaLabel = isFull ? 'Join Waitlist' : 'Apply Now'
+
   return (
     <>
       <motion.nav
@@ -723,10 +743,10 @@ function Navbar() {
           </button>
           <motion.button
             whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-            onClick={() => window.location.href = APP_URL}
+            onClick={ctaClick}
             style={{ background: S.text, border: 'none', color: '#000', fontSize: '14px', fontWeight: 700, cursor: 'pointer', padding: '8px 20px', borderRadius: '8px' }}
           >
-            Apply Now
+            {ctaLabel}
           </motion.button>
         </div>
 
@@ -764,7 +784,7 @@ function Navbar() {
             </button>
             <div style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
               <button onClick={() => window.location.href = APP_URL} style={{ flex: 1, background: 'none', border: `1px solid ${S.border}`, color: S.text, fontSize: '15px', fontWeight: 500, cursor: 'pointer', padding: '12px', borderRadius: '10px' }}>Login</button>
-              <button onClick={() => window.location.href = APP_URL} style={{ flex: 1, background: S.text, border: 'none', color: '#000', fontSize: '15px', fontWeight: 700, cursor: 'pointer', padding: '12px', borderRadius: '10px' }}>Apply Now</button>
+              <button onClick={ctaClick} style={{ flex: 1, background: S.text, border: 'none', color: '#000', fontSize: '15px', fontWeight: 700, cursor: 'pointer', padding: '12px', borderRadius: '10px' }}>{ctaLabel}</button>
             </div>
           </motion.div>
         )}
@@ -789,6 +809,7 @@ const HEADLINE_LINES = [
 
 function Hero() {
   let wordIdx = 0
+  const { isFull } = useSpots()
 
   return (
     <section style={{
@@ -812,7 +833,9 @@ function Hero() {
             >
               <Lock size={12} color="#e5e5e5" style={{ display: 'inline-block', flexShrink: 0 }} />
               <span style={{ fontSize: '12px', color: '#e5e5e5', fontWeight: 600, letterSpacing: '-0.1px' }}>
-                Early Access — <span style={{ color: S.muted, fontWeight: 500 }}>First 100 traders get priority approval</span>
+                {isFull
+                  ? 'Waitlist Open'
+                  : <>Early Access — <span style={{ color: S.muted, fontWeight: 500 }}>First 100 traders get priority approval</span></>}
               </span>
             </motion.div>
           </motion.div>
@@ -847,23 +870,31 @@ function Hero() {
 
           <motion.div
             initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 1.0, ease: [0.16, 1, 0.3, 1] }}
-            style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '18px' }}
+            style={{ marginBottom: '18px' }}
           >
-            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-              onClick={() => window.location.href = APP_URL}
-              style={{ background: S.text, border: 'none', color: '#000', fontSize: '15px', fontWeight: 700, cursor: 'pointer', padding: '13px 28px', borderRadius: '10px', letterSpacing: '-0.2px' }}>
-              Apply for Early Access →
-            </motion.button>
-            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-              onClick={() => smoothScrollToId('early-access')}
-              style={{ background: 'transparent', border: `1px solid ${S.border}`, color: S.text, fontSize: '15px', fontWeight: 500, cursor: 'pointer', padding: '13px 28px', borderRadius: '10px' }}>
-              See Preview
-            </motion.button>
+            {isFull ? (
+              <WaitlistForm align="left" maxWidth="420px" />
+            ) : (
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                  onClick={() => window.location.href = APP_URL}
+                  style={{ background: S.text, border: 'none', color: '#000', fontSize: '15px', fontWeight: 700, cursor: 'pointer', padding: '13px 28px', borderRadius: '10px', letterSpacing: '-0.2px' }}>
+                  Apply for Early Access →
+                </motion.button>
+                <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                  onClick={() => smoothScrollToId('early-access')}
+                  style={{ background: 'transparent', border: `1px solid ${S.border}`, color: S.text, fontSize: '15px', fontWeight: 500, cursor: 'pointer', padding: '13px 28px', borderRadius: '10px' }}>
+                  See Preview
+                </motion.button>
+              </div>
+            )}
           </motion.div>
 
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2, duration: 0.5 }}
             style={{ fontSize: '12px', color: S.muted2 }}>
-            No payment required · Limited approvals only · Serious traders only
+            {isFull
+              ? "Early access is full — we'll email you the moment subscriptions open"
+              : 'No payment required · Limited approvals only · Serious traders only'}
           </motion.p>
         </div>
 
@@ -1087,37 +1118,106 @@ function HowItWorks() {
   )
 }
 
+// ─── WAITLIST FORM ────────────────────────────────────────────────────────────
+function WaitlistForm({ align = 'center', maxWidth = '440px' }) {
+  const [email, setEmail] = useState('')
+  const [status, setStatus] = useState('idle') // idle | loading | success | already | error | invalid
+
+  const submit = async (e) => {
+    e.preventDefault()
+    const value = email.trim().toLowerCase()
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) { setStatus('invalid'); return }
+    setStatus('loading')
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/waitlist`, {
+        method: 'POST',
+        headers: { ...SUPABASE_HEADERS, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        body: JSON.stringify({ email: value }),
+      })
+      if (res.ok) { setStatus('success'); return }
+      const data = await res.json().catch(() => ({}))
+      if (res.status === 409 || data.code === '23505' || /duplicate/i.test(data.message || '')) setStatus('already')
+      else setStatus('error')
+    } catch {
+      setStatus('error')
+    }
+  }
+
+  if (status === 'success') {
+    return (
+      <div style={{ width: '100%', maxWidth, margin: align === 'center' ? '0 auto' : 0, background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.3)', borderRadius: '12px', padding: '16px 20px', textAlign: align, color: '#7ee2a8', fontSize: '15px', fontWeight: 600 }}>
+        You're on the list — we'll notify you at launch 🔥
+      </div>
+    )
+  }
+
+  const messages = {
+    already: "You're already on the waitlist!",
+    error: 'Something went wrong. Please try again.',
+    invalid: 'Please enter a valid email address.',
+  }
+
+  return (
+    <div style={{ width: '100%', maxWidth, margin: align === 'center' ? '0 auto' : 0 }}>
+      <form onSubmit={submit} className="waitlist-form" style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+        <input
+          type="email"
+          value={email}
+          onChange={e => { setEmail(e.target.value); if (status !== 'loading') setStatus('idle') }}
+          placeholder="you@email.com"
+          className="waitlist-input"
+          style={{ flex: 1, minWidth: '200px', background: '#0d0d0d', border: `1px solid ${S.border}`, borderRadius: '10px', padding: '13px 16px', color: S.text, fontSize: '15px', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s' }}
+          onFocus={e => e.currentTarget.style.borderColor = '#444'}
+          onBlur={e => e.currentTarget.style.borderColor = S.border}
+        />
+        <motion.button
+          type="submit"
+          disabled={status === 'loading'}
+          whileHover={{ scale: status === 'loading' ? 1 : 1.03 }} whileTap={{ scale: 0.97 }}
+          style={{ background: '#161616', border: '1px solid rgba(255,255,255,0.22)', color: S.text, fontSize: '15px', fontWeight: 700, cursor: status === 'loading' ? 'default' : 'pointer', padding: '13px 26px', borderRadius: '10px', whiteSpace: 'nowrap', transition: 'border-color 0.2s, background 0.2s' }}
+          onMouseEnter={e => { if (status !== 'loading') { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.45)'; e.currentTarget.style.background = '#1d1d1d' } }}
+          onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.22)'; e.currentTarget.style.background = '#161616' }}
+        >
+          {status === 'loading' ? 'Joining…' : 'Join Waitlist'}
+        </motion.button>
+      </form>
+      {messages[status] && (
+        <p style={{ fontSize: '13px', color: status === 'already' ? '#f5b531' : '#ff6b6b', margin: '12px 0 0', textAlign: align }}>{messages[status]}</p>
+      )}
+      <style>{`
+        .waitlist-input::placeholder { color: #555; }
+        @media (max-width: 480px) {
+          .waitlist-form { flex-direction: column; }
+          .waitlist-form button { width: 100%; }
+        }
+      `}</style>
+    </div>
+  )
+}
+
+// ─── WAITLIST SECTION ─────────────────────────────────────────────────────────
+function WaitlistSection() {
+  return (
+    <section id="waitlist" style={{ position: 'relative', zIndex: 1, padding: '80px 40px 100px', borderTop: `1px solid ${S.border}` }}>
+      <FadeIn>
+        <div style={{ maxWidth: '560px', margin: '0 auto', textAlign: 'center' }}>
+          <p style={{ fontSize: '11px', color: S.muted2, textTransform: 'uppercase', letterSpacing: '2.5px', marginBottom: '16px' }}>Waitlist</p>
+          <h2 style={{ fontSize: 'clamp(26px, 3.5vw, 40px)', fontWeight: 800, color: S.text, letterSpacing: '-1.5px', lineHeight: 1.12, margin: '0 0 14px' }}>Miss the first 100? Join the waitlist.</h2>
+          <p style={{ fontSize: '16px', color: S.muted, lineHeight: 1.6, margin: '0 0 32px' }}>We'll notify you the moment subscriptions open.</p>
+          <WaitlistForm align="center" maxWidth="440px" />
+        </div>
+      </FadeIn>
+    </section>
+  )
+}
+
 // ─── EARLY ACCESS ─────────────────────────────────────────────────────────────
-const SUPABASE_URL = 'https://fngdbdcpfamcoctmdhyc.supabase.co'
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZuZ2RiZGNwZmFtY29jdG1kaHljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMzg1NjAsImV4cCI6MjA5MDgxNDU2MH0.WfHTTFZqBGXOTll3qcr9OOa5w2vXdurtYW-LL4tqhYY'
-
 function EarlyAccess() {
-  const spotsTotal = 100
-  const [approvedCount, setApprovedCount] = useState(null)
-
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles?status=eq.approved&select=id`, {
-          headers: {
-            'apikey': SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-          },
-        })
-        const data = await response.json()
-        if (!cancelled && Array.isArray(data)) setApprovedCount(data.length)
-      } catch {
-        if (!cancelled) setApprovedCount(0)
-      }
-    })()
-    return () => { cancelled = true }
-  }, [])
+  const { approvedCount, isFull, spotsTotal } = useSpots()
 
   const taken = approvedCount ?? 0
   const remaining = Math.max(0, spotsTotal - taken)
   const percentFilled = Math.min(100, (taken / spotsTotal) * 100)
-  const isFull = taken >= spotsTotal
 
   const bullets = [
     'Full access to every feature — no limits, no paywalls',
@@ -1234,10 +1334,10 @@ function EarlyAccess() {
                 <motion.button
                   whileHover={{ scale: 1.04, boxShadow: '0 0 60px rgba(255,255,255,0.22)' }}
                   whileTap={{ scale: 0.97 }}
-                  onClick={() => window.location.href = APP_URL}
+                  onClick={() => isFull ? smoothScrollToId('waitlist') : (window.location.href = APP_URL)}
                   style={{ background: S.text, border: 'none', color: '#000', fontSize: '16px', fontWeight: 700, cursor: 'pointer', padding: '16px 36px', borderRadius: '12px', letterSpacing: '-0.2px', boxShadow: '0 0 40px rgba(255,255,255,0.12)', transition: 'box-shadow 0.3s' }}
                 >
-                  Apply for Early Access →
+                  {isFull ? 'Early Access Full — Join Waitlist' : 'Apply for Early Access →'}
                 </motion.button>
                 <p style={{ fontSize: '12px', color: S.muted2, lineHeight: 1.55, maxWidth: '440px', margin: '20px auto 0' }}>
                   This is for active traders only. Not for beginners looking for signals.
@@ -1334,6 +1434,7 @@ function FAQ() {
 
 // ─── FINAL CTA ────────────────────────────────────────────────────────────────
 function FinalCTA() {
+  const { isFull } = useSpots()
   return (
     <section style={{ position: 'relative', zIndex: 1, padding: '120px 40px', overflow: 'hidden' }}>
       <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 55% at 50% 50%, rgba(255,255,255,0.05) 0%, transparent 70%)', pointerEvents: 'none' }} />
@@ -1350,10 +1451,10 @@ function FinalCTA() {
           <motion.button
             whileHover={{ scale: 1.04, boxShadow: '0 0 60px rgba(255,255,255,0.2)' }}
             whileTap={{ scale: 0.97 }}
-            onClick={() => window.location.href = APP_URL}
+            onClick={() => isFull ? smoothScrollToId('waitlist') : (window.location.href = APP_URL)}
             style={{ background: S.text, border: 'none', color: '#000', fontSize: '17px', fontWeight: 700, cursor: 'pointer', padding: '17px 44px', borderRadius: '13px', letterSpacing: '-0.3px', boxShadow: '0 0 40px rgba(255,255,255,0.12)', transition: 'box-shadow 0.3s' }}
           >
-            Apply for Early Access →
+            {isFull ? 'Join the Waitlist →' : 'Apply for Early Access →'}
           </motion.button>
           <p style={{ fontSize: '13px', color: S.muted2, marginTop: '18px' }}>No payment required · Limited approvals only · Serious traders only</p>
         </div>
@@ -1781,6 +1882,40 @@ function ArticlePage({ slug }) {
 }
 
 // ─── HOME PAGE ───────────────────────────────────────────────────────────────
+// ─── HOMEPAGE BLOG PREVIEW (3 latest articles) ───────────────────────────────
+function BlogPreview() {
+  const { navigate } = useRouter()
+  const latest = useMemo(() => [...ARTICLES].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 3), [])
+
+  return (
+    <section style={{ position: 'relative', zIndex: 1, padding: '100px 40px', borderTop: `1px solid ${S.border}` }}>
+      <div style={{ maxWidth: '1160px', margin: '0 auto' }}>
+        <FadeIn>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '20px', flexWrap: 'wrap', marginBottom: '40px' }}>
+            <div>
+              <p style={{ fontSize: '11px', color: S.muted2, textTransform: 'uppercase', letterSpacing: '2.5px', marginBottom: '14px' }}>Insights</p>
+              <h2 style={{ fontSize: 'clamp(28px, 3.5vw, 44px)', fontWeight: 800, color: S.text, letterSpacing: '-2px', lineHeight: 1.1, margin: 0 }}>From the Blog</h2>
+            </div>
+            <button
+              onClick={() => navigate('/blog')}
+              style={{ background: 'none', border: 'none', color: S.text, fontSize: '14px', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 0', transition: 'opacity 0.2s' }}
+              onMouseEnter={e => e.currentTarget.style.opacity = '0.65'}
+              onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+            >
+              View all articles <ArrowRight size={15} />
+            </button>
+          </div>
+        </FadeIn>
+
+        <div className="blog-grid" style={{ gap: '20px' }}>
+          {latest.map((a, i) => <ArticleCard key={a.slug} article={a} index={i} />)}
+        </div>
+      </div>
+      <style>{BLOG_CSS}</style>
+    </section>
+  )
+}
+
 function HomePage() {
   usePageMeta(
     'LIMITLESS — Trading Journal for Serious Traders',
@@ -1794,7 +1929,9 @@ function HomePage() {
       <AnimatedSection><Features /></AnimatedSection>
       <AnimatedSection><HowItWorks /></AnimatedSection>
       <AnimatedSection><EarlyAccess /></AnimatedSection>
+      <AnimatedSection><WaitlistSection /></AnimatedSection>
       <AnimatedSection><FAQ /></AnimatedSection>
+      <AnimatedSection><BlogPreview /></AnimatedSection>
       <AnimatedSection><FinalCTA /></AnimatedSection>
     </>
   )
@@ -1803,11 +1940,27 @@ function HomePage() {
 // ─── APP ROOT ─────────────────────────────────────────────────────────────────
 export default function App() {
   const [route, setRoute] = useState(() => (typeof window !== 'undefined' ? parseRoute(window.location.pathname) : { page: 'home' }))
+  const [approvedCount, setApprovedCount] = useState(null)
 
   useEffect(() => {
     const onPop = () => setRoute(parseRoute(window.location.pathname))
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
+  }, [])
+
+  // Fetch approved-user count once — drives the Apply → Waitlist auto-switch
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles?status=eq.approved&select=id`, { headers: SUPABASE_HEADERS })
+        const data = await res.json()
+        if (!cancelled && Array.isArray(data)) setApprovedCount(data.length)
+      } catch {
+        if (!cancelled) setApprovedCount(0)
+      }
+    })()
+    return () => { cancelled = true }
   }, [])
 
   const navigate = useCallback((path) => {
@@ -1820,18 +1973,26 @@ export default function App() {
     window.scrollTo({ top: 0 })
   }, [])
 
+  const spots = useMemo(() => ({
+    approvedCount,
+    isFull: (approvedCount ?? 0) >= SPOTS_TOTAL,
+    spotsTotal: SPOTS_TOTAL,
+  }), [approvedCount])
+
   return (
     <RouterContext.Provider value={{ route, navigate }}>
-      <div style={{ background: S.bg, minHeight: '100vh', position: 'relative' }}>
-        <GrainOverlay />
-        <AuroraBlobs />
-        <CursorEffect />
-        <Navbar />
-        {route.page === 'home' && <HomePage />}
-        {route.page === 'blog' && <BlogIndex />}
-        {route.page === 'article' && <ArticlePage slug={route.slug} />}
-        <Footer />
-      </div>
+      <SpotsContext.Provider value={spots}>
+        <div style={{ background: S.bg, minHeight: '100vh', position: 'relative' }}>
+          <GrainOverlay />
+          <AuroraBlobs />
+          <CursorEffect />
+          <Navbar />
+          {route.page === 'home' && <HomePage />}
+          {route.page === 'blog' && <BlogIndex />}
+          {route.page === 'article' && <ArticlePage slug={route.slug} />}
+          <Footer />
+        </div>
+      </SpotsContext.Provider>
     </RouterContext.Provider>
   )
 }
