@@ -57,7 +57,7 @@ const smoothScrollToId = (id) => {
 const SUPABASE_URL = 'https://fngdbdcpfamcoctmdhyc.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZuZ2RiZGNwZmFtY29jdG1kaHljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMzg1NjAsImV4cCI6MjA5MDgxNDU2MH0.WfHTTFZqBGXOTll3qcr9OOa5w2vXdurtYW-LL4tqhYY'
 const SUPABASE_HEADERS = { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
-const SPOTS_TOTAL = 100
+const SPOTS_TOTAL = 150
 
 // Shared early-access capacity — drives the Apply → Waitlist auto-switch everywhere
 const SpotsContext = createContext({ approvedCount: null, isFull: false, spotsTotal: SPOTS_TOTAL })
@@ -680,7 +680,7 @@ function Navbar() {
     else { navigate('/'); setTimeout(() => smoothScrollToId('waitlist'), 120) }
   }
   const ctaClick = () => { isFull ? goWaitlist() : (window.location.href = APP_URL) }
-  const ctaLabel = isFull ? 'Join Waitlist' : 'Apply Now'
+  const ctaLabel = isFull ? 'Join the Waitlist' : 'Apply for Free Access'
 
   return (
     <>
@@ -834,8 +834,8 @@ function Hero() {
               <Lock size={12} color="#e5e5e5" style={{ display: 'inline-block', flexShrink: 0 }} />
               <span style={{ fontSize: '12px', color: '#e5e5e5', fontWeight: 600, letterSpacing: '-0.1px' }}>
                 {isFull
-                  ? 'Waitlist Open'
-                  : <>Early Access — <span style={{ color: S.muted, fontWeight: 500 }}>First 100 traders get priority approval</span></>}
+                  ? 'Beta Full — Waitlist Open'
+                  : <>Early Access — <span style={{ color: S.muted, fontWeight: 500 }}>First 150 traders get priority approval</span></>}
               </span>
             </motion.div>
           </motion.div>
@@ -865,7 +865,9 @@ function Hero() {
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.8, ease: [0.16, 1, 0.3, 1] }}
             style={{ fontSize: '17px', lineHeight: 1.65, color: S.muted, maxWidth: '380px', margin: '0 0 36px' }}
           >
-            Join the early access waitlist for LIMITLESS — a private trading journal built for serious traders. Limited spots available.
+            {isFull
+              ? 'Beta is full. Subscriptions launching soon. Join the waitlist to be first in line.'
+              : 'Apply for free access to LIMITLESS — a private trading journal built for serious traders. Limited spots available.'}
           </motion.p>
 
           <motion.div
@@ -879,7 +881,7 @@ function Hero() {
                 <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                   onClick={() => window.location.href = APP_URL}
                   style={{ background: S.text, border: 'none', color: '#000', fontSize: '15px', fontWeight: 700, cursor: 'pointer', padding: '13px 28px', borderRadius: '10px', letterSpacing: '-0.2px' }}>
-                  Apply for Early Access →
+                  Apply for Free Access →
                 </motion.button>
                 <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                   onClick={() => smoothScrollToId('early-access')}
@@ -893,8 +895,8 @@ function Hero() {
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2, duration: 0.5 }}
             style={{ fontSize: '12px', color: S.muted2 }}>
             {isFull
-              ? "Early access is full — we'll email you the moment subscriptions open"
-              : 'No payment required · Limited approvals only · Serious traders only'}
+              ? "Beta is full — we'll email you the moment subscriptions open"
+              : 'No payment required · Free during beta · Serious traders only'}
           </motion.p>
         </div>
 
@@ -1178,7 +1180,7 @@ function WaitlistForm({ align = 'center', maxWidth = '440px' }) {
           onMouseEnter={e => { if (status !== 'loading') { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.45)'; e.currentTarget.style.background = '#1d1d1d' } }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.22)'; e.currentTarget.style.background = '#161616' }}
         >
-          {status === 'loading' ? 'Joining…' : 'Join Waitlist'}
+          {status === 'loading' ? 'Joining…' : 'Join the Waitlist'}
         </motion.button>
       </form>
       {messages[status] && (
@@ -1202,7 +1204,7 @@ function WaitlistSection() {
       <FadeIn>
         <div style={{ maxWidth: '560px', margin: '0 auto', textAlign: 'center' }}>
           <p style={{ fontSize: '11px', color: S.muted2, textTransform: 'uppercase', letterSpacing: '2.5px', marginBottom: '16px' }}>Waitlist</p>
-          <h2 style={{ fontSize: 'clamp(26px, 3.5vw, 40px)', fontWeight: 800, color: S.text, letterSpacing: '-1.5px', lineHeight: 1.12, margin: '0 0 14px' }}>Miss the first 100? Join the waitlist.</h2>
+          <h2 style={{ fontSize: 'clamp(26px, 3.5vw, 40px)', fontWeight: 800, color: S.text, letterSpacing: '-1.5px', lineHeight: 1.12, margin: '0 0 14px' }}>Miss the first 150? Join the waitlist.</h2>
           <p style={{ fontSize: '16px', color: S.muted, lineHeight: 1.6, margin: '0 0 32px' }}>We'll notify you the moment subscriptions open.</p>
           <WaitlistForm align="center" maxWidth="440px" />
         </div>
@@ -1254,7 +1256,7 @@ function EarlyAccess() {
               <div style={{ textAlign: 'center', marginBottom: '44px' }}>
                 <p style={{ fontSize: '11px', color: S.muted2, textTransform: 'uppercase', letterSpacing: '2.5px', marginBottom: '16px' }}>Early Access</p>
                 <h2 style={{ fontSize: 'clamp(28px, 3.5vw, 46px)', fontWeight: 800, color: S.text, letterSpacing: '-2px', lineHeight: 1.1, margin: '0 0 18px' }}>
-                  Only 100 Traders Get In First.
+                  Only 150 Traders Get In First.
                 </h2>
                 <p style={{ fontSize: '16px', color: S.muted, lineHeight: 1.65, maxWidth: '600px', margin: '0 auto' }}>
                   We're opening early access to a small group of serious traders. Free. In exchange for real feedback.
@@ -1337,7 +1339,7 @@ function EarlyAccess() {
                   onClick={() => isFull ? smoothScrollToId('waitlist') : (window.location.href = APP_URL)}
                   style={{ background: S.text, border: 'none', color: '#000', fontSize: '16px', fontWeight: 700, cursor: 'pointer', padding: '16px 36px', borderRadius: '12px', letterSpacing: '-0.2px', boxShadow: '0 0 40px rgba(255,255,255,0.12)', transition: 'box-shadow 0.3s' }}
                 >
-                  {isFull ? 'Early Access Full — Join Waitlist' : 'Apply for Early Access →'}
+                  {isFull ? 'Join the Waitlist' : 'Apply for Free Access →'}
                 </motion.button>
                 <p style={{ fontSize: '12px', color: S.muted2, lineHeight: 1.55, maxWidth: '440px', margin: '20px auto 0' }}>
                   This is for active traders only. Not for beginners looking for signals.
@@ -1454,9 +1456,9 @@ function FinalCTA() {
             onClick={() => isFull ? smoothScrollToId('waitlist') : (window.location.href = APP_URL)}
             style={{ background: S.text, border: 'none', color: '#000', fontSize: '17px', fontWeight: 700, cursor: 'pointer', padding: '17px 44px', borderRadius: '13px', letterSpacing: '-0.3px', boxShadow: '0 0 40px rgba(255,255,255,0.12)', transition: 'box-shadow 0.3s' }}
           >
-            {isFull ? 'Join the Waitlist →' : 'Apply for Early Access →'}
+            {isFull ? 'Join the Waitlist →' : 'Apply for Free Access →'}
           </motion.button>
-          <p style={{ fontSize: '13px', color: S.muted2, marginTop: '18px' }}>No payment required · Limited approvals only · Serious traders only</p>
+          <p style={{ fontSize: '13px', color: S.muted2, marginTop: '18px' }}>No payment required · Free during beta · Serious traders only</p>
         </div>
       </FadeIn>
     </section>
@@ -1721,6 +1723,13 @@ function ReadingProgressBar({ color = '#ffffff' }) {
 // ─── BLOG: ARTICLE PAGE ──────────────────────────────────────────────────────
 function ArticlePage({ slug }) {
   const { navigate } = useRouter()
+  const { isFull } = useSpots()
+  // When the beta is full, article CTAs route to the home-page waitlist instead of the app
+  const ctaAction = () => {
+    if (isFull) { navigate('/'); setTimeout(() => smoothScrollToId('waitlist'), 120) }
+    else window.location.href = APP_URL
+  }
+  const ctaText = isFull ? 'Join the Waitlist →' : 'Apply for Free Access →'
   const article = ARTICLES.find(a => a.slug === slug)
 
   usePageMeta(
@@ -1793,7 +1802,7 @@ function ArticlePage({ slug }) {
         return (
           <div key={i} style={{ textAlign: 'center', background: 'radial-gradient(ellipse 80% 100% at 50% 0%, rgba(255,255,255,0.06), transparent 70%)', border: `1px solid ${S.border}`, borderRadius: '16px', padding: '36px 28px', margin: '40px 0 8px' }}>
             <p style={{ fontSize: '18px', fontWeight: 600, color: S.text, margin: '0 0 18px', lineHeight: 1.4 }}>{block.text}</p>
-            <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} onClick={() => window.location.href = APP_URL} style={{ background: S.text, border: 'none', color: '#000', fontSize: '15px', fontWeight: 700, cursor: 'pointer', padding: '13px 30px', borderRadius: '11px' }}>Apply for Early Access →</motion.button>
+            <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} onClick={ctaAction} style={{ background: S.text, border: 'none', color: '#000', fontSize: '15px', fontWeight: 700, cursor: 'pointer', padding: '13px 30px', borderRadius: '11px' }}>{ctaText}</motion.button>
           </div>
         )
       default:
@@ -1873,7 +1882,7 @@ function ArticlePage({ slug }) {
         <div style={{ maxWidth: '560px', margin: '0 auto', position: 'relative' }}>
           <h2 style={{ fontSize: 'clamp(26px, 3.5vw, 38px)', fontWeight: 800, color: S.text, letterSpacing: '-1.5px', lineHeight: 1.15, margin: '0 0 18px' }}>Start journaling your trades today</h2>
           <p style={{ fontSize: '16px', color: S.muted, lineHeight: 1.6, margin: '0 0 32px' }}>Join the serious traders using LIMITLESS to track every trade, fix every mistake, and build a real edge.</p>
-          <motion.button whileHover={{ scale: 1.04, boxShadow: '0 0 50px rgba(255,255,255,0.18)' }} whileTap={{ scale: 0.97 }} onClick={() => window.location.href = APP_URL} style={{ background: S.text, border: 'none', color: '#000', fontSize: '16px', fontWeight: 700, cursor: 'pointer', padding: '15px 36px', borderRadius: '12px', boxShadow: '0 0 40px rgba(255,255,255,0.1)' }}>Apply for Early Access →</motion.button>
+          <motion.button whileHover={{ scale: 1.04, boxShadow: '0 0 50px rgba(255,255,255,0.18)' }} whileTap={{ scale: 0.97 }} onClick={ctaAction} style={{ background: S.text, border: 'none', color: '#000', fontSize: '16px', fontWeight: 700, cursor: 'pointer', padding: '15px 36px', borderRadius: '12px', boxShadow: '0 0 40px rgba(255,255,255,0.1)' }}>{ctaText}</motion.button>
         </div>
       </section>
       <style>{BLOG_CSS}</style>
