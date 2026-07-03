@@ -358,7 +358,7 @@ const S = {
 function GrainOverlay() {
   return (
     <svg
-      style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 9999, opacity: 0.03 }}
+      style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 9999, opacity: 0.02 }}
       aria-hidden="true"
     >
       <filter id="grain">
@@ -395,6 +395,114 @@ function FadeIn({ children, delay = 0, y = 24, style = {} }) {
     >
       {children}
     </motion.div>
+  )
+}
+
+// ─── MAGNETIC WRAPPER (buttons pull toward the cursor, spring back on leave) ──
+function Magnetic({ children, strength = 0.25, style = {} }) {
+  const ref = useRef(null)
+  const x = useMotionValue(0)
+  const y = useMotionValue(0)
+  const sx = useSpring(x, { stiffness: 260, damping: 18, mass: 0.5 })
+  const sy = useSpring(y, { stiffness: 260, damping: 18, mass: 0.5 })
+
+  // mousemove never fires on touch devices, so this degrades to a no-op there
+  const onMove = (e) => {
+    const r = ref.current?.getBoundingClientRect()
+    if (!r) return
+    x.set((e.clientX - (r.left + r.width / 2)) * strength)
+    y.set((e.clientY - (r.top + r.height / 2)) * strength)
+  }
+  const onLeave = () => { x.set(0); y.set(0) }
+
+  return (
+    <motion.div ref={ref} onMouseMove={onMove} onMouseLeave={onLeave} style={{ x: sx, y: sy, display: 'inline-block', ...style }}>
+      {children}
+    </motion.div>
+  )
+}
+
+// ─── SECTION HEADING (staggered reveal + self-drawing accent line) ───────────
+function SectionHeading({ eyebrow, title, center = true, style = {} }) {
+  const ease = [0.16, 1, 0.3, 1]
+  return (
+    <div style={{ textAlign: center ? 'center' : 'left', ...style }}>
+      {eyebrow && (
+        <motion.p
+          initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-60px' }} transition={{ duration: 0.5, ease }}
+          style={{ fontSize: '11px', color: S.muted2, textTransform: 'uppercase', letterSpacing: '2.5px', marginBottom: '16px' }}
+        >
+          {eyebrow}
+        </motion.p>
+      )}
+      <motion.h2
+        initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-60px' }} transition={{ duration: 0.65, delay: 0.08, ease }}
+        style={{ fontSize: 'clamp(30px, 4vw, 48px)', fontWeight: 800, color: S.text, letterSpacing: '-0.03em', lineHeight: 1.08, margin: 0, textWrap: 'balance' }}
+      >
+        {title}
+      </motion.h2>
+      <motion.div
+        aria-hidden="true"
+        initial={{ scaleX: 0 }} whileInView={{ scaleX: 1 }} viewport={{ once: true, margin: '-60px' }} transition={{ duration: 0.7, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}
+        style={{ width: '56px', height: '2px', margin: center ? '22px auto 0' : '22px 0 0', background: 'linear-gradient(90deg, #4ade80, rgba(74,222,128,0.15))', transformOrigin: 'left', borderRadius: '2px', boxShadow: '0 0 12px rgba(74,222,128,0.5)' }}
+      />
+    </div>
+  )
+}
+
+// ─── STICKY MINI CTA (slides in after scrolling past the hero, home only) ────
+function StickyCTA() {
+  const { route } = useRouter()
+  const { approvedCount, isFull, spotsTotal } = useSpots()
+  const [show, setShow] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setShow(window.scrollY > window.innerHeight * 0.9)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  if (route.page !== 'home') return null
+  const remaining = Math.max(0, spotsTotal - (approvedCount ?? 0))
+
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          initial={{ y: 90, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 90, opacity: 0 }}
+          transition={{ type: 'spring', stiffness: 260, damping: 26 }}
+          style={{
+            position: 'fixed', bottom: '18px', left: '50%', x: '-50%', zIndex: 900,
+            display: 'flex', alignItems: 'center', gap: '14px', maxWidth: 'calc(100vw - 32px)',
+            background: 'rgba(10,10,10,0.82)', border: '1px solid rgba(255,255,255,0.12)',
+            boxShadow: '0 12px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06)',
+            borderRadius: '100px', padding: '10px 10px 10px 20px',
+            backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)',
+          }}
+        >
+          <motion.span
+            aria-hidden="true"
+            animate={{ opacity: [1, 0.45, 1] }} transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+            style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#4ade80', boxShadow: '0 0 10px #4ade80', flexShrink: 0 }}
+          />
+          <span style={{ fontSize: '13px', color: '#d6d6d6', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {isFull
+              ? 'Beta full — waitlist open'
+              : <>Free beta access — <span style={{ color: '#4ade80', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{remaining}</span> spots left</>}
+          </span>
+          <motion.button
+            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.94 }} transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+            onClick={() => isFull ? smoothScrollToId('waitlist') : (window.location.href = APP_URL)}
+            style={{ background: '#fff', border: 'none', color: '#000', fontSize: '13px', fontWeight: 700, cursor: 'pointer', padding: '9px 18px', borderRadius: '100px', whiteSpace: 'nowrap', flexShrink: 0 }}
+          >
+            {isFull ? 'Join the Waitlist' : 'Apply'}
+          </motion.button>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }
 
@@ -570,19 +678,28 @@ function FloatingParticles() {
 // ─── DASHBOARD MOCKUP ─────────────────────────────────────────────────────────
 function DashboardMockup() {
   const ref = useRef(null)
+  // Deep 3D tilt that flattens as the mockup scrolls toward center
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'center center'] })
-  const rotX = useTransform(scrollYProgress, [0, 1], [8, 0])
+  const rotX = useTransform(scrollYProgress, [0, 1], [16, 0])
+  // Parallax — mockup lags the scroll across its full traversal of the viewport
+  const { scrollYProgress: traverse } = useScroll({ target: ref, offset: ['start end', 'end start'] })
+  const parallaxY = useTransform(traverse, [0, 1], [-20, 56])
 
   return (
+    <motion.div ref={ref} style={{ y: parallaxY, position: 'relative', width: '100%', maxWidth: '760px', willChange: 'transform' }}>
     <motion.div
-      ref={ref}
       initial={{ opacity: 0, x: 50, y: 60 }}
       animate={{ opacity: 1, x: 0, y: 0 }}
       transition={{ duration: 1.1, delay: 1.4, ease: [0.22, 1, 0.36, 1] }}
-      style={{ position: 'relative', width: '100%', maxWidth: '760px' }}
+      style={{ position: 'relative', width: '100%' }}
     >
-      {/* Ambient green glow */}
-      <div style={{ position: 'absolute', top: '40%', left: '40%', transform: 'translate(-50%,-50%)', width: '110%', height: '110%', background: 'radial-gradient(ellipse at center, rgba(0,255,100,0.07) 0%, transparent 62%)', pointerEvents: 'none', zIndex: 0 }} />
+      {/* Ambient green glow — slow breathing pulse */}
+      <motion.div
+        aria-hidden="true"
+        animate={{ opacity: [0.6, 1, 0.6], scale: [1, 1.08, 1] }}
+        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+        style={{ position: 'absolute', top: '40%', left: '40%', x: '-50%', y: '-50%', width: '110%', height: '110%', background: 'radial-gradient(ellipse at center, rgba(0,255,100,0.09) 0%, transparent 62%)', pointerEvents: 'none', zIndex: 0 }}
+      />
 
       <FloatingParticles />
 
@@ -635,6 +752,7 @@ function DashboardMockup() {
           <span style={{ fontSize: '12px', color: '#c8c8c8', fontWeight: 500, whiteSpace: 'nowrap' }}>Live Dashboard Preview</span>
         </motion.div>
       </motion.div>
+    </motion.div>
     </motion.div>
   )
 }
@@ -713,8 +831,9 @@ function Navbar() {
           {NAV_LINKS.map(link => (
             <button
               key={link}
+              className="nav-link"
               onClick={() => scrollTo(link)}
-              style={{ background: 'none', border: 'none', color: S.muted, fontSize: '14px', fontWeight: 500, cursor: 'pointer', padding: '6px 14px', borderRadius: '8px', transition: 'color 0.2s' }}
+              style={{ position: 'relative', background: 'none', border: 'none', color: S.muted, fontSize: '14px', fontWeight: 500, cursor: 'pointer', padding: '6px 14px', borderRadius: '8px', transition: 'color 0.2s' }}
               onMouseEnter={e => e.currentTarget.style.color = S.text}
               onMouseLeave={e => e.currentTarget.style.color = S.muted}
             >
@@ -722,8 +841,9 @@ function Navbar() {
             </button>
           ))}
           <button
+            className="nav-link"
             onClick={goBlog}
-            style={{ background: 'none', border: 'none', color: onBlog ? S.text : S.muted, fontSize: '14px', fontWeight: 500, cursor: 'pointer', padding: '6px 14px', borderRadius: '8px', transition: 'color 0.2s' }}
+            style={{ position: 'relative', background: 'none', border: 'none', color: onBlog ? S.text : S.muted, fontSize: '14px', fontWeight: 500, cursor: 'pointer', padding: '6px 14px', borderRadius: '8px', transition: 'color 0.2s' }}
             onMouseEnter={e => e.currentTarget.style.color = S.text}
             onMouseLeave={e => e.currentTarget.style.color = onBlog ? S.text : S.muted}
           >
@@ -741,13 +861,15 @@ function Navbar() {
           >
             Login
           </button>
-          <motion.button
-            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-            onClick={ctaClick}
-            style={{ background: S.text, border: 'none', color: '#000', fontSize: '14px', fontWeight: 700, cursor: 'pointer', padding: '8px 20px', borderRadius: '8px' }}
-          >
-            {ctaLabel}
-          </motion.button>
+          <Magnetic strength={0.2}>
+            <motion.button
+              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.95 }} transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+              onClick={ctaClick}
+              style={{ background: S.text, border: 'none', color: '#000', fontSize: '14px', fontWeight: 700, cursor: 'pointer', padding: '8px 20px', borderRadius: '8px' }}
+            >
+              {ctaLabel}
+            </motion.button>
+          </Magnetic>
         </div>
 
         {/* Hamburger (mobile) */}
@@ -791,6 +913,19 @@ function Navbar() {
       </AnimatePresence>
 
       <style>{`
+        .nav-link::after {
+          content: '';
+          position: absolute;
+          left: 14px; right: 14px; bottom: 0;
+          height: 1.5px;
+          background: #4ade80;
+          border-radius: 2px;
+          transform: scaleX(0);
+          transform-origin: left;
+          transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+          opacity: 0.9;
+        }
+        .nav-link:hover::after { transform: scaleX(1); }
         @media (max-width: 768px) {
           .nav-desktop { display: none !important; }
           .nav-mobile { display: flex !important; }
@@ -812,16 +947,22 @@ function Hero() {
   const { isFull } = useSpots()
 
   return (
-    <section style={{
+    <section className="hero-section" style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center', padding: '120px 40px 80px',
       position: 'relative', zIndex: 1,
-      backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px)',
-      backgroundSize: '40px 40px',
     }}>
+      {/* Drifting dot grid — oversized layer animated with transform only, clipped by its parent */}
+      <div aria-hidden="true" style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
+        <motion.div
+          animate={{ x: [0, 30, 0], y: [0, -22, 0] }}
+          transition={{ duration: 48, repeat: Infinity, ease: 'easeInOut' }}
+          style={{ position: 'absolute', inset: '-90px', backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.035) 1px, transparent 1px)', backgroundSize: '38px 38px', willChange: 'transform' }}
+        />
+      </div>
       {/* Hero edge fade so dot grid feathers into surrounding bg */}
       <div aria-hidden="true" style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 60% at 50% 50%, transparent 30%, #080808 85%)', pointerEvents: 'none', zIndex: 0 }} />
 
-      <div style={{ maxWidth: '1280px', margin: '0 auto', width: '100%', display: 'grid', gridTemplateColumns: '420px 1fr', gap: '56px', alignItems: 'center', position: 'relative', zIndex: 2 }} className="hero-grid">
+      <div style={{ maxWidth: '1280px', margin: '0 auto', width: '100%', display: 'grid', gridTemplateColumns: '600px 1fr', gap: '48px', alignItems: 'center', position: 'relative', zIndex: 2 }} className="hero-grid">
 
         {/* Left text */}
         <div style={{ position: 'relative', zIndex: 2 }}>
@@ -840,7 +981,7 @@ function Hero() {
             </motion.div>
           </motion.div>
 
-          <h1 style={{ fontSize: 'clamp(38px, 4.2vw, 56px)', fontWeight: 800, lineHeight: 1.07, letterSpacing: '-2.5px', color: S.text, margin: '0 0 22px' }}>
+          <h1 className="hero-h1" style={{ fontSize: 'clamp(36px, 5.2vw, 72px)', fontWeight: 800, lineHeight: 1.04, letterSpacing: '-0.03em', color: S.text, margin: '0 0 24px' }}>
             {HEADLINE_LINES.map((line, li) => (
               <span key={li} style={{ display: 'block' }}>
                 {line.map((word) => {
@@ -863,7 +1004,7 @@ function Hero() {
 
           <motion.p
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            style={{ fontSize: '17px', lineHeight: 1.65, color: S.muted, maxWidth: '380px', margin: '0 0 36px' }}
+            style={{ fontSize: '18px', lineHeight: 1.65, color: '#9c9c9c', maxWidth: '440px', margin: '0 0 36px' }}
           >
             {isFull
               ? 'Beta is full. Subscriptions launching soon. Join the waitlist to be first in line.'
@@ -878,16 +1019,20 @@ function Hero() {
               <WaitlistForm align="left" maxWidth="420px" />
             ) : (
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                  onClick={() => window.location.href = APP_URL}
-                  style={{ background: S.text, border: 'none', color: '#000', fontSize: '15px', fontWeight: 700, cursor: 'pointer', padding: '13px 28px', borderRadius: '10px', letterSpacing: '-0.2px' }}>
-                  Apply for Free Access →
-                </motion.button>
-                <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                  onClick={() => smoothScrollToId('early-access')}
-                  style={{ background: 'transparent', border: `1px solid ${S.border}`, color: S.text, fontSize: '15px', fontWeight: 500, cursor: 'pointer', padding: '13px 28px', borderRadius: '10px' }}>
-                  See Preview
-                </motion.button>
+                <Magnetic>
+                  <motion.button whileHover={{ scale: 1.03, boxShadow: '0 0 44px rgba(255,255,255,0.22)' }} whileTap={{ scale: 0.96 }} transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                    onClick={() => window.location.href = APP_URL}
+                    style={{ background: S.text, border: 'none', color: '#000', fontSize: '15px', fontWeight: 700, cursor: 'pointer', padding: '14px 30px', borderRadius: '10px', letterSpacing: '-0.2px', boxShadow: '0 0 24px rgba(255,255,255,0.08)' }}>
+                    Apply for Free Access →
+                  </motion.button>
+                </Magnetic>
+                <Magnetic strength={0.18}>
+                  <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }} transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                    onClick={() => smoothScrollToId('early-access')}
+                    style={{ background: 'transparent', border: `1px solid ${S.border}`, color: S.text, fontSize: '15px', fontWeight: 500, cursor: 'pointer', padding: '14px 30px', borderRadius: '10px' }}>
+                    See Preview
+                  </motion.button>
+                </Magnetic>
               </div>
             )}
           </motion.div>
@@ -909,8 +1054,12 @@ function Hero() {
       </div>
 
       <style>{`
+        @supports (min-height: 100dvh) {
+          .hero-section { min-height: 100dvh !important; }
+        }
         @media (max-width: 1100px) {
-          .hero-grid { grid-template-columns: 380px 1fr !important; gap: 32px !important; }
+          .hero-grid { grid-template-columns: 440px 1fr !important; gap: 32px !important; }
+          .hero-h1 { font-size: clamp(36px, 4.5vw, 54px) !important; }
         }
         @media (max-width: 900px) {
           .hero-grid { grid-template-columns: 1fr !important; }
@@ -937,7 +1086,7 @@ function SocialProof() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1px', background: S.border, borderRadius: S.radius, overflow: 'hidden', marginBottom: '48px' }} className="stats-grid">
             {STATS.map((s, i) => (
               <div key={i} style={{ background: S.bg, padding: '36px 20px', textAlign: 'center' }}>
-                <div style={{ fontSize: '40px', fontWeight: 800, color: S.text, letterSpacing: '-2px', marginBottom: '6px' }}>
+                <div style={{ fontSize: '44px', fontWeight: 800, color: S.text, letterSpacing: '-0.03em', marginBottom: '6px', fontVariantNumeric: 'tabular-nums' }}>
                   <CountUp to={s.to} prefix={s.prefix} suffix={s.suffix} format={s.format} />
                 </div>
                 <div style={{ fontSize: '13px', color: S.muted }}>{s.label}</div>
@@ -950,7 +1099,7 @@ function SocialProof() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }} className="testimonial-grid">
           {TESTIMONIALS.map((t, i) => (
             <FadeIn key={i} delay={i * 0.1}>
-              <div style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: S.radius, padding: '24px', height: '100%' }}>
+              <div className="t-card" style={{ background: S.card, border: `1px solid ${S.border}`, borderRadius: S.radius, padding: '24px', height: '100%' }}>
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '16px' }}>
                   <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: '#1a1a1a', border: `1px solid ${S.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700, color: S.text, flexShrink: 0 }}>{t.initials}</div>
                   <div>
@@ -968,6 +1117,14 @@ function SocialProof() {
         </div>
       </div>
       <style>{`
+        .t-card {
+          transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .t-card:hover {
+          transform: translateY(-4px);
+          border-color: #2a2a2a;
+          box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45);
+        }
         @media (max-width: 900px) {
           .stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
         }
@@ -985,6 +1142,11 @@ function FeatureCard({ feature, index }) {
   const ref = useRef(null)
   const mouseX = useMotionValue(-200)
   const mouseY = useMotionValue(-200)
+  // Subtle 3D tilt toward the cursor, spring-damped (mouse events don't fire on touch)
+  const tiltX = useMotionValue(0)
+  const tiltY = useMotionValue(0)
+  const rotateX = useSpring(tiltX, { stiffness: 180, damping: 20, mass: 0.6 })
+  const rotateY = useSpring(tiltY, { stiffness: 180, damping: 20, mass: 0.6 })
   const [active, setActive] = useState(false)
 
   const onMouseMove = (e) => {
@@ -992,6 +1154,13 @@ function FeatureCard({ feature, index }) {
     if (!r) return
     mouseX.set(e.clientX - r.left)
     mouseY.set(e.clientY - r.top)
+    tiltX.set(((e.clientY - r.top) / r.height - 0.5) * -5)
+    tiltY.set(((e.clientX - r.left) / r.width - 0.5) * 5)
+  }
+  const onLeave = () => {
+    setActive(false)
+    tiltX.set(0)
+    tiltY.set(0)
   }
 
   const background = useTransform(
@@ -1003,14 +1172,21 @@ function FeatureCard({ feature, index }) {
     <motion.div
       ref={ref}
       onMouseEnter={() => setActive(true)}
-      onMouseLeave={() => setActive(false)}
+      onMouseLeave={onLeave}
       onMouseMove={onMouseMove}
       initial={{ opacity: 0, y: 60, scale: 0.95 }}
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
       whileHover={{ y: -6 }}
       viewport={{ once: true, margin: '-60px' }}
       transition={{ duration: 0.6, delay: index * 0.15, ease: [0.16, 1, 0.3, 1] }}
-      style={{ position: 'relative', background: S.card, border: `1px solid ${S.border}`, borderRadius: S.radius, padding: '32px 28px', height: '100%', overflow: 'hidden' }}
+      style={{
+        rotateX, rotateY, transformPerspective: 900,
+        position: 'relative', background: S.card,
+        border: `1px solid ${active ? '#2c2c2c' : S.border}`,
+        borderRadius: S.radius, padding: '32px 28px', height: '100%', overflow: 'hidden',
+        boxShadow: active ? '0 26px 60px rgba(0,0,0,0.55), 0 0 30px rgba(74,222,128,0.05)' : '0 0 0 rgba(0,0,0,0)',
+        transition: 'box-shadow 0.35s ease, border-color 0.35s ease',
+      }}
     >
       <motion.div
         aria-hidden="true"
@@ -1019,10 +1195,14 @@ function FeatureCard({ feature, index }) {
         style={{ position: 'absolute', inset: 0, background, pointerEvents: 'none', zIndex: 0 }}
       />
       <div style={{ position: 'relative', zIndex: 1 }}>
-        <div style={{ width: '46px', height: '46px', borderRadius: '11px', background: '#141414', border: `1px solid ${S.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+        <motion.div
+          animate={{ scale: active ? 1.1 : 1, rotate: active ? -5 : 0 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+          style={{ width: '46px', height: '46px', borderRadius: '11px', background: '#141414', border: `1px solid ${active ? 'rgba(74,222,128,0.35)' : S.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px', transition: 'border-color 0.3s ease' }}
+        >
           <Icon size={20} color={S.text} />
-        </div>
-        <h3 style={{ fontSize: '17px', fontWeight: 700, color: S.text, letterSpacing: '-0.5px', marginBottom: '10px' }}>{feature.title}</h3>
+        </motion.div>
+        <h3 style={{ fontSize: '17px', fontWeight: 700, color: S.text, letterSpacing: '-0.02em', marginBottom: '10px' }}>{feature.title}</h3>
         <p style={{ fontSize: '14px', lineHeight: 1.7, color: S.muted, margin: 0 }}>{feature.desc}</p>
       </div>
     </motion.div>
@@ -1034,14 +1214,7 @@ function Features() {
   return (
     <section id="features" style={{ position: 'relative', zIndex: 1, padding: '100px 40px' }}>
       <div style={{ maxWidth: '1160px', margin: '0 auto' }}>
-        <FadeIn>
-          <div style={{ textAlign: 'center', marginBottom: '64px' }}>
-            <p style={{ fontSize: '11px', color: S.muted2, textTransform: 'uppercase', letterSpacing: '2.5px', marginBottom: '16px' }}>Features</p>
-            <h2 style={{ fontSize: 'clamp(28px, 3.5vw, 46px)', fontWeight: 800, color: S.text, letterSpacing: '-2px', lineHeight: 1.1, margin: 0 }}>
-              Everything You Need to<br />Improve Your Trading
-            </h2>
-          </div>
-        </FadeIn>
+        <SectionHeading eyebrow="Features" title={<>Everything You Need to<br />Improve Your Trading</>} style={{ marginBottom: '64px' }} />
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }} className="features-grid">
           {FEATURES.map((f, i) => <FeatureCard key={i} feature={f} index={i} />)}
@@ -1061,14 +1234,7 @@ function HowItWorks() {
   return (
     <section id="preview" style={{ position: 'relative', zIndex: 1, padding: '80px 40px 100px', borderTop: `1px solid ${S.border}` }}>
       <div style={{ maxWidth: '1160px', margin: '0 auto' }}>
-        <FadeIn>
-          <div style={{ textAlign: 'center', marginBottom: '72px' }}>
-            <p style={{ fontSize: '11px', color: S.muted2, textTransform: 'uppercase', letterSpacing: '2.5px', marginBottom: '16px' }}>How It Works</p>
-            <h2 style={{ fontSize: 'clamp(28px, 3.5vw, 46px)', fontWeight: 800, color: S.text, letterSpacing: '-2px', margin: 0 }}>
-              Simple. Powerful. Effective.
-            </h2>
-          </div>
-        </FadeIn>
+        <SectionHeading eyebrow="How It Works" title="Simple. Powerful. Effective." style={{ marginBottom: '72px' }} />
 
         <div style={{ position: 'relative' }}>
           {/* Connector line — draws itself */}
@@ -1203,9 +1369,8 @@ function WaitlistSection() {
     <section id="waitlist" style={{ position: 'relative', zIndex: 1, padding: '80px 40px 100px', borderTop: `1px solid ${S.border}` }}>
       <FadeIn>
         <div style={{ maxWidth: '560px', margin: '0 auto', textAlign: 'center' }}>
-          <p style={{ fontSize: '11px', color: S.muted2, textTransform: 'uppercase', letterSpacing: '2.5px', marginBottom: '16px' }}>Waitlist</p>
-          <h2 style={{ fontSize: 'clamp(26px, 3.5vw, 40px)', fontWeight: 800, color: S.text, letterSpacing: '-1.5px', lineHeight: 1.12, margin: '0 0 14px' }}>Miss the first 150? Join the waitlist.</h2>
-          <p style={{ fontSize: '16px', color: S.muted, lineHeight: 1.6, margin: '0 0 32px' }}>We'll notify you the moment subscriptions open.</p>
+          <SectionHeading eyebrow="Waitlist" title="Miss the first 150? Join the waitlist." />
+          <p style={{ fontSize: '16px', color: S.muted, lineHeight: 1.6, margin: '20px 0 32px' }}>We'll notify you the moment subscriptions open.</p>
           <WaitlistForm align="center" maxWidth="440px" />
         </div>
       </FadeIn>
@@ -1254,13 +1419,13 @@ function EarlyAccess() {
             <div style={{ position: 'relative' }}>
               {/* Header */}
               <div style={{ textAlign: 'center', marginBottom: '44px' }}>
-                <p style={{ fontSize: '11px', color: S.muted2, textTransform: 'uppercase', letterSpacing: '2.5px', marginBottom: '16px' }}>Early Access</p>
-                <h2 style={{ fontSize: 'clamp(28px, 3.5vw, 46px)', fontWeight: 800, color: S.text, letterSpacing: '-2px', lineHeight: 1.1, margin: '0 0 18px' }}>
-                  Only 150 Traders Get In First.
-                </h2>
-                <p style={{ fontSize: '16px', color: S.muted, lineHeight: 1.65, maxWidth: '600px', margin: '0 auto' }}>
+                <SectionHeading eyebrow="Early Access" title="Only 150 Traders Get In First." />
+                <motion.p
+                  initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-60px' }} transition={{ duration: 0.55, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                  style={{ fontSize: '16px', color: S.muted, lineHeight: 1.65, maxWidth: '600px', margin: '20px auto 0' }}
+                >
                   We're opening early access to a small group of serious traders. Free. In exchange for real feedback.
-                </p>
+                </motion.p>
               </div>
 
               {/* Spots counter */}
@@ -1273,8 +1438,8 @@ function EarlyAccess() {
                         ? `${spotsTotal} spots remaining`
                         : <><CountDown key={`rem-${remaining}`} from={spotsTotal} to={remaining} /> spots remaining</>}
                   </span>
-                  <span style={{ fontSize: '15px', color: S.text, fontWeight: 700, letterSpacing: '-0.3px' }}>
-                    <span style={{ color: '#ff4d4d' }}>
+                  <span style={{ fontSize: '15px', color: S.text, fontWeight: 700, letterSpacing: '-0.3px', fontVariantNumeric: 'tabular-nums' }}>
+                    <span style={{ color: '#4ade80' }}>
                       <CountUp key={`take-${taken}`} to={taken} />
                     </span>
                     <span style={{ color: S.muted2 }}> / {spotsTotal} spots taken</span>
@@ -1285,7 +1450,7 @@ function EarlyAccess() {
                     initial={{ width: 0 }}
                     animate={{ width: `${percentFilled}%` }}
                     transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-                    style={{ height: '100%', background: 'linear-gradient(90deg, #ff3d3d 0%, #ff6b4d 100%)', borderRadius: '100px', boxShadow: '0 0 14px rgba(255,77,77,0.55)' }}
+                    style={{ height: '100%', background: 'linear-gradient(90deg, #22c55e 0%, #4ade80 100%)', borderRadius: '100px', boxShadow: '0 0 14px rgba(74,222,128,0.55)' }}
                   />
                 </div>
                 <p style={{ fontSize: '12px', color: S.muted2, textAlign: 'center', margin: 0 }}>
@@ -1333,14 +1498,16 @@ function EarlyAccess() {
 
               {/* CTA */}
               <div style={{ textAlign: 'center' }}>
-                <motion.button
-                  whileHover={{ scale: 1.04, boxShadow: '0 0 60px rgba(255,255,255,0.22)' }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => isFull ? smoothScrollToId('waitlist') : (window.location.href = APP_URL)}
-                  style={{ background: S.text, border: 'none', color: '#000', fontSize: '16px', fontWeight: 700, cursor: 'pointer', padding: '16px 36px', borderRadius: '12px', letterSpacing: '-0.2px', boxShadow: '0 0 40px rgba(255,255,255,0.12)', transition: 'box-shadow 0.3s' }}
-                >
-                  {isFull ? 'Join the Waitlist' : 'Apply for Free Access →'}
-                </motion.button>
+                <Magnetic>
+                  <motion.button
+                    whileHover={{ scale: 1.04, boxShadow: '0 0 60px rgba(255,255,255,0.22)' }}
+                    whileTap={{ scale: 0.96 }} transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                    onClick={() => isFull ? smoothScrollToId('waitlist') : (window.location.href = APP_URL)}
+                    style={{ background: S.text, border: 'none', color: '#000', fontSize: '16px', fontWeight: 700, cursor: 'pointer', padding: '16px 36px', borderRadius: '12px', letterSpacing: '-0.2px', boxShadow: '0 0 40px rgba(255,255,255,0.12)' }}
+                  >
+                    {isFull ? 'Join the Waitlist' : 'Apply for Free Access →'}
+                  </motion.button>
+                </Magnetic>
                 <p style={{ fontSize: '12px', color: S.muted2, lineHeight: 1.55, maxWidth: '440px', margin: '20px auto 0' }}>
                   This is for active traders only. Not for beginners looking for signals.
                 </p>
@@ -1368,14 +1535,7 @@ function FAQ() {
   return (
     <section id="faq" style={{ position: 'relative', zIndex: 1, padding: '100px 40px', borderTop: `1px solid ${S.border}` }}>
       <div style={{ maxWidth: '720px', margin: '0 auto' }}>
-        <FadeIn>
-          <div style={{ textAlign: 'center', marginBottom: '56px' }}>
-            <p style={{ fontSize: '11px', color: S.muted2, textTransform: 'uppercase', letterSpacing: '2.5px', marginBottom: '16px' }}>FAQ</p>
-            <h2 style={{ fontSize: 'clamp(28px, 3.5vw, 44px)', fontWeight: 800, color: S.text, letterSpacing: '-2px', margin: 0 }}>
-              Frequently Asked Questions
-            </h2>
-          </div>
-        </FadeIn>
+        <SectionHeading eyebrow="FAQ" title="Frequently Asked Questions" style={{ marginBottom: '56px' }} />
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {FAQS.map((faq, i) => (
@@ -1444,20 +1604,22 @@ function FinalCTA() {
 
       <FadeIn>
         <div style={{ maxWidth: '640px', margin: '0 auto', textAlign: 'center' }}>
-          <h2 style={{ fontSize: 'clamp(32px, 4.5vw, 56px)', fontWeight: 800, color: S.text, letterSpacing: '-2.5px', lineHeight: 1.08, margin: '0 0 20px' }}>
+          <h2 style={{ fontSize: 'clamp(34px, 4.5vw, 58px)', fontWeight: 800, color: S.text, letterSpacing: '-0.03em', lineHeight: 1.06, margin: '0 0 20px', textWrap: 'balance' }}>
             Start Taking Your Trading<br />Seriously Today
           </h2>
           <p style={{ fontSize: '17px', color: S.muted, lineHeight: 1.6, margin: '0 0 44px' }}>
             Join hundreds of traders already improving with LIMITLESS
           </p>
-          <motion.button
-            whileHover={{ scale: 1.04, boxShadow: '0 0 60px rgba(255,255,255,0.2)' }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => isFull ? smoothScrollToId('waitlist') : (window.location.href = APP_URL)}
-            style={{ background: S.text, border: 'none', color: '#000', fontSize: '17px', fontWeight: 700, cursor: 'pointer', padding: '17px 44px', borderRadius: '13px', letterSpacing: '-0.3px', boxShadow: '0 0 40px rgba(255,255,255,0.12)', transition: 'box-shadow 0.3s' }}
-          >
-            {isFull ? 'Join the Waitlist →' : 'Apply for Free Access →'}
-          </motion.button>
+          <Magnetic>
+            <motion.button
+              whileHover={{ scale: 1.04, boxShadow: '0 0 60px rgba(255,255,255,0.2)' }}
+              whileTap={{ scale: 0.96 }} transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+              onClick={() => isFull ? smoothScrollToId('waitlist') : (window.location.href = APP_URL)}
+              style={{ background: S.text, border: 'none', color: '#000', fontSize: '17px', fontWeight: 700, cursor: 'pointer', padding: '17px 44px', borderRadius: '13px', letterSpacing: '-0.3px', boxShadow: '0 0 40px rgba(255,255,255,0.12)' }}
+            >
+              {isFull ? 'Join the Waitlist →' : 'Apply for Free Access →'}
+            </motion.button>
+          </Magnetic>
           <p style={{ fontSize: '13px', color: S.muted2, marginTop: '18px' }}>No payment required · Free during beta · Serious traders only</p>
         </div>
       </FadeIn>
@@ -1481,6 +1643,9 @@ function Footer() {
 
   return (
     <footer style={{ position: 'relative', zIndex: 1, borderTop: `1px solid ${S.border}`, padding: '56px 40px 40px' }}>
+      {/* Subtle green glow along the top border */}
+      <div aria-hidden="true" style={{ position: 'absolute', top: '-1px', left: 0, right: 0, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(74,222,128,0.3) 50%, transparent)' }} />
+      <div aria-hidden="true" style={{ position: 'absolute', top: '-1px', left: '25%', right: '25%', height: '1px', background: 'linear-gradient(90deg, transparent, rgba(74,222,128,0.5), transparent)', filter: 'blur(3px)' }} />
       <div style={{ maxWidth: '1160px', margin: '0 auto' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1.6fr', gap: '40px', marginBottom: '44px' }} className="footer-grid">
           {/* Brand */}
@@ -1901,10 +2066,7 @@ function BlogPreview() {
       <div style={{ maxWidth: '1160px', margin: '0 auto' }}>
         <FadeIn>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '20px', flexWrap: 'wrap', marginBottom: '40px' }}>
-            <div>
-              <p style={{ fontSize: '11px', color: S.muted2, textTransform: 'uppercase', letterSpacing: '2.5px', marginBottom: '14px' }}>Insights</p>
-              <h2 style={{ fontSize: 'clamp(28px, 3.5vw, 44px)', fontWeight: 800, color: S.text, letterSpacing: '-2px', lineHeight: 1.1, margin: 0 }}>From the Blog</h2>
-            </div>
+            <SectionHeading eyebrow="Insights" title="From the Blog" center={false} />
             <button
               onClick={() => navigate('/blog')}
               style={{ background: 'none', border: 'none', color: S.text, fontSize: '14px', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 0', transition: 'opacity 0.2s' }}
@@ -1996,6 +2158,7 @@ export default function App() {
           <AuroraBlobs />
           <CursorEffect />
           <Navbar />
+          <StickyCTA />
           {route.page === 'home' && <HomePage />}
           {route.page === 'blog' && <BlogIndex />}
           {route.page === 'article' && <ArticlePage slug={route.slug} />}
