@@ -12,7 +12,7 @@ import {
 const NAV_LINKS = ['Features', 'Preview', 'Early Access', 'FAQ']
 
 const STATS = [
-  { to: 500,    suffix: '+', label: 'Beta Traders' },
+  { to: 100,    suffix: '+', label: 'Beta Traders' },
   { to: 10000,  suffix: '+', label: 'Trades Tracked', format: (v) => v.toLocaleString() },
   { to: 74,     suffix: '%', label: 'Avg Win Rate' },
   { to: 0,      prefix: '$', label: 'To Get Started' },
