@@ -320,10 +320,10 @@ img { max-width: 100%; }
   .topnav .btn { min-height: 44px !important; padding: 0 18px; }
   .hero-ctas { flex-direction: column; align-items: stretch !important; width: 100%; max-width: 340px; }
   .hero-ctas .btn { width: 100%; }
-  .devices { --ar: 1 / 1.34; margin-top: 36px; }
-  .tablet { width: 104%; left: -16%; top: 12%; }
-  .phone { width: 58%; right: 0; }
-  .chip-a { left: 0; bottom: 10%; }
+  .devices { --ar: 1 / 0.9; margin-top: 40px; max-width: 360px; }
+  .tablet { width: 90%; left: 0; top: 0; }
+  .phone { width: 36%; right: 0; bottom: 0; }
+  .chip-a { left: 0; bottom: 3%; }
   .snap { display: flex !important; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; margin-inline: -16px; padding: 6px 16px 10px; scrollbar-width: none; overscroll-behavior-x: contain; }
   .snap::-webkit-scrollbar { display: none; }
   .snap > * { flex: 0 0 84%; scroll-snap-align: center; }
@@ -350,7 +350,6 @@ img { max-width: 100%; }
 }
 @media (max-width: 380px) {
   .h-xl { font-size: 34px !important; }
-  .phone { width: 60%; }
 }
 
 /* lighter effects on phones: smaller blur radius, no looping float on glass */
