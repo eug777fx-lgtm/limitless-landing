@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, Zap, Target, Brain, ShieldCheck, CalendarDays, Upload, Plus, Minus, Lock, Sparkles } from 'lucide-react'
 import { Link, SIGNUP_URL, usePageMeta, useReveal, wordSize } from '../lib/site.jsx'
-import { Backdrop, Bar, PillBars, LOGO } from '../components/ui.jsx'
+import { Backdrop, Bar, PillBars } from '../components/ui.jsx'
 import HeroDevices from '../components/Devices.jsx'
 import { PricingSection } from '../components/Pricing.jsx'
 import { ArticleCard } from './Blog.jsx'
@@ -235,14 +235,17 @@ function FinalCta() {
   )
 }
 
-// Intro: the logo lands, LIMITLESS opens out of it, then the mark sinks back
-// behind the headline as a soft blur while the headline pops forward.
+// Intro: the crown drops in and flashes, LIMITLESS opens out under it, then the word
+// sinks behind the headline as a soft blur while the headline pops forward.
 function HeroMark({ ws }) {
   const letters = 'LIMITLESS'.split('')
   return (
     <div className="mark" aria-hidden="true">
       <div className="mark-inner">
-        <span className="mark-logo"><img src={LOGO} alt="" /></span>
+        <span className="crown-wrap">
+          <span className="crown-burst" />
+          <span className="crown" />
+        </span>
         <span className="mark-word" style={{ fontSize: ws }}>
           {letters.map((c, i) => {
             const d = i - (letters.length - 1) / 2
@@ -262,7 +265,7 @@ export default function Home() {
     <div className="stage">
       <Backdrop orbs={[{ left: '2%', top: 820, width: 380, height: 380 }, { right: '3%', top: 1300, width: 440, height: 440 }]} />
       <HeroMark ws={ws} />
-      <header className="wrap hero-head" style={{ paddingTop: `calc(${ws} * 0.42 + 150px)`, textAlign: 'center' }}>
+      <header className="wrap hero-head" style={{ paddingTop: `calc(${ws} * 0.42 + 190px)`, textAlign: 'center' }}>
         <div className="col hero-enter" style={{ alignItems: 'center', gap: 20 }}>
           <span className="tag glass" style={{ '--i': 0, padding: '8px 15px', '--fill': 0.08 }}><span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--pos)', animation: 'pulse 2s infinite' }} /> Now open · $15 a month</span>
           <h1 className="h-xl hero-pop" style={{ '--i': 1, maxWidth: 1120, fontSize: 'clamp(38px, 5.4vw, 74px)' }}>Turn your trades into data. <span className="h1-2">Your data into profit.</span></h1>
