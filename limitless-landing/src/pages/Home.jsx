@@ -24,7 +24,9 @@ function LitStatement() {
   const [lit, setLit] = useState(0)
   useEffect(() => {
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) { setLit(words.length); return }
-    const on = () => {
+    let raf = 0
+    const calc = () => {
+      raf = 0
       const el = ref.current
       if (!el) return
       const r = el.getBoundingClientRect()
@@ -32,9 +34,10 @@ function LitStatement() {
       const p = Math.min(1, Math.max(0, (vh * 0.85 - r.top) / (r.height + vh * 0.35)))
       setLit(Math.round(p * words.length))
     }
-    on()
+    const on = () => { if (!raf) raf = requestAnimationFrame(calc) }
+    calc()
     window.addEventListener('scroll', on, { passive: true })
-    return () => window.removeEventListener('scroll', on)
+    return () => { window.removeEventListener('scroll', on); cancelAnimationFrame(raf) }
   }, [words.length])
   return (
     <section className="wrap section" style={{ maxWidth: 1040 }}>

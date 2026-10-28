@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { LayoutDashboard, BookOpen, BarChart3, CalendarDays, Brain, Settings, Plus, Check, House, ListChecks, User, Wifi, BatteryFull, SignalHigh, RefreshCw, ShieldCheck } from 'lucide-react'
 import { smooth } from './ui.jsx'
 import { EQUITY, DAILY } from '../lib/sample.js'
@@ -123,7 +123,7 @@ const ROWS = [
 ]
 const NEW_ROW = { d: 'Oct 28', s: 'NQ', side: 'Long', set: 'OTE retrace', pnl: 530, r: '1.9R', fresh: true }
 
-function TabletScreen({ synced, toast }) {
+const TabletScreen = memo(function TabletScreen({ synced, toast }) {
   const net = useTween(synced ? 2140 : 1610)
   const wr = useTween(synced ? 54 : 53.3)
   const rows = synced ? [NEW_ROW, ...ROWS] : ROWS
@@ -193,7 +193,7 @@ function TabletScreen({ synced, toast }) {
       <div className={'tab-toast' + (toast ? ' on' : '')}><RefreshCw size={15} /> New trade synced from your phone</div>
     </div>
   )
-}
+})
 
 // ── Phone: log, today, mind ───────────────────────────────────────────
 function StatusBar() {
@@ -261,7 +261,7 @@ function LogScreen({ t }) {
   )
 }
 
-function TodayScreen() {
+const TodayScreen = memo(function TodayScreen() {
   const rules = ['Risk 1R or less', 'Stop after 2 losses', 'Max 3 trades', 'NY AM only', 'No red news']
   return (
     <div className="col" style={{ padding: '6px 20px 0', gap: 16 }}>
@@ -291,9 +291,9 @@ function TodayScreen() {
       </div>
     </div>
   )
-}
+})
 
-function MindScreen() {
+const MindScreen = memo(function MindScreen() {
   const bars = [['Focused', 92, true], ['Patient', 55], ['Calm', 30], ['Hesitant', 16], ['FOMO', 28, false, true], ['Revenge', 22, false, true]]
   return (
     <div className="col" style={{ padding: '6px 20px 0', gap: 16 }}>
@@ -319,7 +319,7 @@ function MindScreen() {
       </div>
     </div>
   )
-}
+})
 
 function PhoneScreen({ t }) {
   const idx = t < T.today ? 0 : t < T.mind ? 1 : 2
@@ -346,14 +346,17 @@ function PhoneScreen({ t }) {
 export default function HeroDevices() {
   const stage = useRef(null)
   const inner = useRef(null)
-  const t = useStory(stage)
+  const raw = useStory(stage)
+  // between key moments nothing on screen changes, so snap time to the last moment
+  const marks = [0, T.typeStart, T.typeEnd, T.press, T.saved, T.sync, T.today, T.toastEnd, T.mind]
+  const t = raw >= T.typeStart && raw <= T.typeEnd + 200 ? raw : Math.max(...marks.filter((m) => m <= raw))
   const synced = t >= T.sync
   const toast = t >= T.sync && t < T.toastEnd
 
   // Devices start tipped back and settle flat as the page scrolls
   useEffect(() => {
     const el = inner.current
-    if (!el || matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    if (!el || matchMedia('(prefers-reduced-motion: reduce)').matches || matchMedia('(max-width: 700px)').matches) return
     let raf = 0
     const on = () => {
       cancelAnimationFrame(raf)
