@@ -309,6 +309,49 @@ img { max-width: 100%; }
   .prose p, .prose li { font-size: 17px; }
 }
 
+/* ── Phone sizing ──────────────────────────────────── */
+.snap-dots { display: none; }
+@media (max-width: 700px) {
+  .section { padding-block: 60px; }
+  .h-lg { font-size: clamp(30px, 8.6vw, 38px); }
+  .lead { font-size: 16px; line-height: 1.6; }
+  .btn-lg { min-height: 54px; }
+  .topnav .btn { min-height: 44px !important; padding: 0 18px; }
+  .hero-ctas { flex-direction: column; align-items: stretch !important; width: 100%; max-width: 340px; }
+  .hero-ctas .btn { width: 100%; }
+  .devices { --ar: 1 / 1.34; margin-top: 36px; }
+  .tablet { width: 104%; left: -16%; top: 12%; }
+  .phone { width: 58%; right: 0; }
+  .chip-a { left: 0; bottom: 10%; }
+  .snap { display: flex !important; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; margin-inline: -16px; padding: 6px 16px 10px; scrollbar-width: none; overscroll-behavior-x: contain; }
+  .snap::-webkit-scrollbar { display: none; }
+  .snap > * { flex: 0 0 84%; scroll-snap-align: center; }
+  .snap-dots { display: flex; justify-content: center; gap: 4px; margin-top: 6px; }
+  .snap-dots button { width: 24px; height: 24px; padding: 0; border: none; background: transparent; position: relative; }
+  .snap-dots button::after { content: ""; position: absolute; left: 50%; top: 50%; width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px; border-radius: 99px; background: rgba(255,255,255,0.25); transition: width .35s var(--spring), margin .35s var(--spring), background .3s; }
+  .snap-dots button.on::after { width: 20px; margin-left: -10px; background: #fff; }
+  .feature { min-height: 0 !important; }
+  .feature h3 { margin-top: 10px !important; }
+  .steps .step h3 { font-size: 24px !important; }
+  .step-n { font-size: 40px; }
+  .article-card .cover { aspect-ratio: 2.2 / 1 !important; }
+  .article-card h3 { font-size: 17px !important; }
+  .cover-word { font-size: 30px; top: 10px; left: 16px; }
+  .featured .cover { aspect-ratio: 2 / 1 !important; }
+  footer .col a { min-height: 40px; display: flex; align-items: center; }
+  footer .col { gap: 0 !important; }
+  footer .row { gap: 22px 40px !important; }
+  .faq-q { font-size: 15px; padding: 16px 18px; }
+  .cta { gap: 14px; }
+  .psych .pillbar { }
+  .lit { font-size: 27px !important; }
+  .marquee > div { font-size: 12.5px; gap: 36px; }
+}
+@media (max-width: 380px) {
+  .h-xl { font-size: 34px !important; }
+  .phone { width: 60%; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .001ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }

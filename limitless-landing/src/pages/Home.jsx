@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, Zap, Target, Brain, ShieldCheck, CalendarDays, Upload, Plus, Minus, Lock, Sparkles } from 'lucide-react'
 import { Link, SIGNUP_URL, usePageMeta, useReveal, wordSize } from '../lib/site.jsx'
-import { Backdrop, Bar, PillBars } from '../components/ui.jsx'
+import { Backdrop, Bar, PillBars, Snap } from '../components/ui.jsx'
 import HeroDevices from '../components/Devices.jsx'
 import { PricingSection } from '../components/Pricing.jsx'
 import { ArticleCard } from './Blog.jsx'
@@ -62,7 +62,7 @@ function Features() {
         <h2 className="h-lg">Your edge lives in the data.</h2>
         <p className="lead">A spreadsheet stores what happened. LIMITLESS tells you why it happened, and what it cost.</p>
       </div>
-      <div className="grid g3">
+      <Snap className="grid g3 features-grid">
         {FEATURES.map((f, i) => {
           const Icon = f.icon
           return (
@@ -73,7 +73,7 @@ function Features() {
             </div>
           )
         })}
-      </div>
+      </Snap>
     </section>
   )
 }
@@ -176,9 +176,9 @@ function BlogPreview() {
         </div>
         <Link to="/blog" className="btn btn-ghost">All articles <ArrowRight size={15} /></Link>
       </div>
-      <div className="blog-grid">
+      <Snap className="blog-grid">
         {latest.map((a, i) => <ArticleCard key={a.slug} article={a} i={i} />)}
-      </div>
+      </Snap>
     </section>
   )
 }
@@ -270,7 +270,7 @@ export default function Home() {
           <span className="tag glass" style={{ '--i': 0, padding: '8px 15px', '--fill': 0.08 }}><span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--pos)', animation: 'pulse 2s infinite' }} /> Now open · $15 a month</span>
           <h1 className="h-xl hero-pop" style={{ '--i': 1, maxWidth: 1120, fontSize: 'clamp(38px, 5.4vw, 74px)' }}>Turn your trades into data. <span className="h1-2">Your data into profit.</span></h1>
           <p className="lead" style={{ '--i': 2, textAlign: 'center', maxWidth: 620 }}>The trading journal for funded futures traders. Log in seconds, see why your results happen, and know how close you are to breaking a rule.</p>
-          <div className="row" style={{ '--i': 3, gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+          <div className="row hero-ctas" style={{ '--i': 3, gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
             <a href={SIGNUP_URL} className="btn btn-primary btn-lg">Start for $15 a month <ArrowRight size={16} /></a>
             <Link to="/" hash="features" className="btn btn-ghost btn-lg">See what it does</Link>
           </div>

@@ -197,3 +197,32 @@ export function PillBars({ items, height = 140, width = 12 }) {
     </div>
   )
 }
+
+// Grid on desktop, swipeable row with dots on phones
+export function Snap({ className = '', children }) {
+  const ref = useRef(null)
+  const [at, setAt] = useState(0)
+  const count = Array.isArray(children) ? children.length : 1
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const on = () => {
+      const kids = [...el.children]
+      const mid = el.scrollLeft + el.clientWidth / 2
+      let best = 0, bd = Infinity
+      kids.forEach((k, i) => { const d = Math.abs(k.offsetLeft + k.offsetWidth / 2 - mid); if (d < bd) { bd = d; best = i } })
+      setAt(best)
+    }
+    el.addEventListener('scroll', on, { passive: true })
+    return () => el.removeEventListener('scroll', on)
+  }, [])
+  const go = (i) => { const k = ref.current && ref.current.children[i]; if (k) ref.current.scrollTo({ left: k.offsetLeft - (ref.current.clientWidth - k.offsetWidth) / 2, behavior: 'smooth' }) }
+  return (
+    <>
+      <div ref={ref} className={className + ' snap'}>{children}</div>
+      <div className="snap-dots" role="group" aria-label="Slides">
+        {Array.from({ length: count }, (_, i) => <button key={i} type="button" aria-label={`Show item ${i + 1}`} aria-current={i === at ? 'true' : undefined} className={i === at ? 'on' : ''} onClick={() => go(i)} />)}
+      </div>
+    </>
+  )
+}
