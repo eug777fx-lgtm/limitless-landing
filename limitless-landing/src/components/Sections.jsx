@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { ShieldCheck, Lock, Check, Minus, Sunrise, Zap, MoonStar, CalendarCheck, ArrowRight, AlertTriangle, Trophy, Ban } from 'lucide-react'
 import { CountUp } from './ui.jsx'
 import { SIGNUP_URL } from '../lib/site.jsx'
+import { Corners } from './Hud.jsx'
 
 // ── Real numbers from the live journal (admin panel, Oct 28 2026) ─────
 const PROOF = [
@@ -14,11 +15,16 @@ export function Proof() {
     <section className="wrap proof" aria-label="LIMITLESS in numbers">
       {PROOF.map((p, i) => (
         <div key={p.label} className="col proof-item" data-reveal style={{ '--i': i }}>
+          <svg className="proof-ring" viewBox="-60 -60 120 120" aria-hidden="true">
+            <circle r="56" className="pr-faint" />
+            <circle r="56" className="pr-arc" pathLength="100" style={{ '--to': 100 - [72, 84, 64][i] }} />
+            {Array.from({ length: 60 }, (_, k) => { const a = (k / 60) * Math.PI * 2; const l = k % 5 ? 3 : 6; return <line key={k} x1={Math.cos(a) * 48} y1={Math.sin(a) * 48} x2={Math.cos(a) * (48 - l)} y2={Math.sin(a) * (48 - l)} /> })}
+          </svg>
           <span className="big num proof-num"><CountUp value={p.v} format={p.f} /></span>
           <span className="muted" style={{ fontSize: 14 }}>{p.label}</span>
         </div>
       ))}
-      <span className="proof-note faint">Live numbers from the journal, October 2026</span>
+      <span className="proof-note faint mono">// LIVE FROM THE JOURNAL · OCT 2026</span>
     </section>
   )
 }
@@ -56,12 +62,13 @@ export function RuleSim() {
     <section id="rules" className="wrap section" style={{ scrollMarginTop: 40 }}>
       <div className="grid g2" style={{ alignItems: 'center', gap: 48 }}>
         <div className="col" style={{ gap: 16 }} data-reveal>
-          <span className="tag tag-soft" style={{ alignSelf: 'flex-start' }}><ShieldCheck size={12} /> For funded traders</span>
+          <span className="tag tag-soft hud-label" style={{ alignSelf: 'flex-start' }}><ShieldCheck size={12} /> For funded traders</span>
           <h2 className="h-lg">See the breach before it happens.</h2>
           <p className="lead">Drag today's P&amp;L and watch an Apex 50K evaluation react. LIMITLESS does this live while you trade: target, trailing drawdown, your daily stop and the consistency rule.</p>
           <span className="tag tag-soft" style={{ alignSelf: 'flex-start' }}><Lock size={11} /> Prop firm presets and payouts come with Pro</span>
         </div>
         <div className={'glass panel sim sim-' + s.status} style={{ gap: 18, padding: 30, '--i': 1 }} data-reveal>
+          <Corners />
           <div className="row" style={{ justifyContent: 'space-between', gap: 10 }}>
             <div className="col"><h3 style={{ fontSize: 18, fontWeight: 600 }}>Apex 50K evaluation</h3><span className="faint" style={{ fontSize: 12.5 }}>Sample account, try it</span></div>
             <span className={'tag sim-chip'}><ChipIcon size={13} /> {chip[0]}</span>
@@ -98,7 +105,7 @@ export function Day() {
   return (
     <section className="wrap section">
       <div className="col" style={{ gap: 14, maxWidth: 640, marginBottom: 40 }} data-reveal>
-        <span className="tag tag-soft" style={{ alignSelf: 'flex-start' }}>How it fits your day</span>
+        <span className="tag tag-soft hud-label" style={{ alignSelf: 'flex-start' }}>How it fits your day</span>
         <h2 className="h-lg">A few minutes a day. A better trader every week.</h2>
       </div>
       <div className="day" data-reveal>
@@ -134,10 +141,11 @@ export function Compare() {
   return (
     <section className="wrap section" style={{ maxWidth: 1040 }}>
       <div className="col" style={{ gap: 14, alignItems: 'center', textAlign: 'center', marginBottom: 34 }} data-reveal>
-        <span className="tag tag-soft">Why not a spreadsheet?</span>
+        <span className="tag tag-soft hud-label">Why not a spreadsheet?</span>
         <h2 className="h-lg">A spreadsheet stores trades. LIMITLESS explains them.</h2>
       </div>
       <div className="glass cmp" data-reveal>
+        <Corners />
         <div className="cmp-row cmp-head">
           <span />
           <span className="cmp-cell">Spreadsheet</span>

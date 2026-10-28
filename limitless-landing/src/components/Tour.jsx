@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { LayoutDashboard, BookOpen, BarChart3, ShieldCheck, Brain, Settings, Check, Image as ImageIcon, Lock } from 'lucide-react'
 import { Scaled, TabletScreen } from './Devices.jsx'
 import { LOGO } from './ui.jsx'
+import { Corners } from './Hud.jsx'
 
 // ── Shared app shell (same look as the hero tablet) ───────────────────
 const NAV = [LayoutDashboard, BookOpen, BarChart3, ShieldCheck, Brain, Settings]
@@ -269,7 +270,7 @@ export default function Tour() {
   return (
     <section id="tour" ref={ref} className="wrap section tour" style={{ scrollMarginTop: 40 }}>
       <div className="col" style={{ gap: 14, alignItems: 'center', textAlign: 'center', marginBottom: 34 }} data-reveal>
-        <span className="tag tag-soft">Inside LIMITLESS</span>
+        <span className="tag tag-soft hud-label">Inside LIMITLESS</span>
         <h2 className="h-lg">One journal. Every answer.</h2>
       </div>
       <div className="tour-tabs well" role="tablist" aria-label="Product tour">
@@ -289,6 +290,7 @@ export default function Tour() {
           </div>
         </div>
         <div className="tour-window glass" key={'w' + at}>
+          <Corners />
           <div className="row tour-bar">
             <span className="tl" /><span className="tl" /><span className="tl" />
             <span className="tour-url">app.limitless-journal.com</span>
