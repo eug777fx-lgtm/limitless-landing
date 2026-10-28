@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, Zap, Target, Brain, ShieldCheck, CalendarDays, Upload, Plus, Minus, Lock, Sparkles } from 'lucide-react'
 import { Link, SIGNUP_URL, usePageMeta, useReveal, wordSize } from '../lib/site.jsx'
-import { Backdrop, Bar, PillBars } from '../components/ui.jsx'
+import { Backdrop, Bar, PillBars, LOGO } from '../components/ui.jsx'
 import HeroDevices from '../components/Devices.jsx'
 import { PricingSection } from '../components/Pricing.jsx'
 import { ArticleCard } from './Blog.jsx'
@@ -235,17 +235,37 @@ function FinalCta() {
   )
 }
 
+// Intro: the logo lands, LIMITLESS opens out of it, then the mark sinks back
+// behind the headline as a soft blur while the headline pops forward.
+function HeroMark({ ws }) {
+  const letters = 'LIMITLESS'.split('')
+  return (
+    <div className="mark" aria-hidden="true">
+      <div className="mark-inner">
+        <span className="mark-logo"><img src={LOGO} alt="" /></span>
+        <span className="mark-word" style={{ fontSize: ws }}>
+          {letters.map((c, i) => {
+            const d = i - (letters.length - 1) / 2
+            return <span key={i} style={{ '--dx': d, animationDelay: `${0.55 + Math.abs(d) * 0.06}s` }}>{c}</span>
+          })}
+        </span>
+      </div>
+    </div>
+  )
+}
+
 export default function Home() {
   usePageMeta('LIMITLESS | The trading journal for funded traders', 'The trading journal for funded futures and forex traders. Log trades in seconds, see why your results happen, and track your prop firm rules. $15 a month.')
   useReveal()
-  const ws = wordSize('LIMITLESS', 196)
+  const ws = wordSize('LIMITLESS', 230)
   return (
     <div className="stage">
-      <Backdrop word="LIMITLESS" top={96} size={196} orbs={[{ left: '2%', top: 820, width: 380, height: 380 }, { right: '3%', top: 1300, width: 440, height: 440 }]} />
-      <header className="wrap" style={{ paddingTop: `calc(${ws} * 0.8 + 104px)`, textAlign: 'center' }}>
-        <div className="col enter" style={{ alignItems: 'center', gap: 20 }}>
+      <Backdrop orbs={[{ left: '2%', top: 820, width: 380, height: 380 }, { right: '3%', top: 1300, width: 440, height: 440 }]} />
+      <HeroMark ws={ws} />
+      <header className="wrap hero-head" style={{ paddingTop: `calc(${ws} * 0.42 + 150px)`, textAlign: 'center' }}>
+        <div className="col hero-enter" style={{ alignItems: 'center', gap: 20 }}>
           <span className="tag glass" style={{ '--i': 0, padding: '8px 15px', '--fill': 0.08 }}><span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--pos)', animation: 'pulse 2s infinite' }} /> Now open · $15 a month</span>
-          <h1 className="h-xl" style={{ '--i': 1, maxWidth: 1120, fontSize: 'clamp(38px, 5.4vw, 74px)' }}>Turn your trades into data. <span className="h1-2">Your data into profit.</span></h1>
+          <h1 className="h-xl hero-pop" style={{ '--i': 1, maxWidth: 1120, fontSize: 'clamp(38px, 5.4vw, 74px)' }}>Turn your trades into data. <span className="h1-2">Your data into profit.</span></h1>
           <p className="lead" style={{ '--i': 2, textAlign: 'center', maxWidth: 620 }}>The trading journal for funded futures traders. Log in seconds, see why your results happen, and know how close you are to breaking a rule.</p>
           <div className="row" style={{ '--i': 3, gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
             <a href={SIGNUP_URL} className="btn btn-primary btn-lg">Start for $15 a month <ArrowRight size={16} /></a>
