@@ -49,7 +49,7 @@ function useTween(target, ms = 900) {
 }
 
 // Renders children at a fixed design size and scales them to the frame width
-function Scaled({ w, h, children, className = '' }) {
+export function Scaled({ w, h, children, className = '' }) {
   const ref = useRef(null)
   const [s, setS] = useState(0)
   useLayoutEffect(() => {
@@ -123,7 +123,7 @@ const ROWS = [
 ]
 const NEW_ROW = { d: 'Oct 28', s: 'NQ', side: 'Long', set: 'OTE retrace', pnl: 530, r: '1.9R', fresh: true }
 
-const TabletScreen = memo(function TabletScreen({ synced, toast }) {
+export const TabletScreen = memo(function TabletScreen({ synced, toast }) {
   const net = useTween(synced ? 2140 : 1610)
   const wr = useTween(synced ? 54 : 53.3)
   const rows = synced ? [NEW_ROW, ...ROWS] : ROWS

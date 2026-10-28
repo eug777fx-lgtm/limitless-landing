@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowRight, Zap, Target, Brain, ShieldCheck, CalendarDays, Upload, Plus, Minus, Lock, Sparkles } from 'lucide-react'
+import { ArrowRight, Brain, Plus, Minus, Sparkles } from 'lucide-react'
 import { Link, SIGNUP_URL, usePageMeta, useReveal, wordSize } from '../lib/site.jsx'
-import { Backdrop, Bar, PillBars, Snap } from '../components/ui.jsx'
+import { Backdrop, PillBars, Snap } from '../components/ui.jsx'
 import HeroDevices from '../components/Devices.jsx'
+import Bento from '../components/Bento.jsx'
+import Tour from '../components/Tour.jsx'
+import { Proof, RuleSim, Day, Compare, StickyCta } from '../components/Sections.jsx'
 import { PricingSection } from '../components/Pricing.jsx'
 import { ArticleCard } from './Blog.jsx'
 import { ARTICLES } from '../content/articles.js'
-import { SAMPLE, money, pct } from '../lib/sample.js'
 
 function Marquee() {
   const t = ['NQ', 'ES', 'YM', 'GC', 'CL', 'EUR/USD', 'XAU/USD', 'FUNDED TRADING', 'PROP FIRMS', 'FUTURES', 'FOREX', 'APEX', 'TOPSTEP']
@@ -48,14 +50,6 @@ function LitStatement() {
   )
 }
 
-const FEATURES = [
-  { icon: Zap, title: 'Log a trade in seconds', body: 'Symbol, side, entry, stop, exit. P&L and R calculate themselves, and screenshots paste straight in.', big: true },
-  { icon: Target, title: 'Find your A+ setup', body: 'Every setup gets a grade from its own results, so you know which to size up and which to cut.' },
-  { icon: Brain, title: 'See what your mood costs', body: 'Tag how you felt before entry. LIMITLESS shows the dollar cost of FOMO, revenge and hesitation.' },
-  { icon: ShieldCheck, title: 'Score your discipline', body: 'Write your own rules, tick them on each trade, and watch the score that predicts your month.' },
-  { icon: CalendarDays, title: 'Know your hours', body: 'Net by weekday and hour shows exactly when you make money and when you give it back.' },
-  { icon: Upload, title: 'Bring your history', body: 'Import past trades from a CSV export and get a full review on day one.' },
-]
 
 function Features() {
   return (
@@ -65,54 +59,11 @@ function Features() {
         <h2 className="h-lg">Your edge lives in the data.</h2>
         <p className="lead">A spreadsheet stores what happened. LIMITLESS tells you why it happened, and what it cost.</p>
       </div>
-      <Snap className="grid g3 features-grid">
-        {FEATURES.map((f, i) => {
-          const Icon = f.icon
-          return (
-            <div key={f.title} className="glass lift panel feature" data-reveal style={{ "--i": i % 3 }}>
-              <span className="ink" style={{ width: 50, height: 50, borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon size={20} /></span>
-              <h3 style={{ fontSize: 19, fontWeight: 600, marginTop: 'auto' }}>{f.title}</h3>
-              <p className="muted" style={{ fontSize: 14, lineHeight: 1.6 }}>{f.body}</p>
-            </div>
-          )
-        })}
-      </Snap>
+      <Bento />
     </section>
   )
 }
 
-function Rules() {
-  const rows = [
-    { label: 'Profit target', value: `${money(SAMPLE.net, false)} of ${money(SAMPLE.target, false)}`, p: SAMPLE.net / SAMPLE.target },
-    { label: 'Trailing drawdown', value: `${money(SAMPLE.trailing, false)} left`, p: 1 },
-    { label: 'Your daily stop', value: `$0 of ${money(SAMPLE.dailyStop, false)}`, p: 0.03 },
-    { label: 'Consistency, 30% max', value: pct(SAMPLE.consistency), p: SAMPLE.consistency / 0.3, warn: true },
-  ]
-  return (
-    <section id="rules" className="wrap section" style={{ scrollMarginTop: 40 }}>
-      <div className="grid g2" style={{ alignItems: 'center', gap: 48 }}>
-        <div className="col" style={{ gap: 16 }} data-reveal>
-          <span className="tag tag-soft" style={{ alignSelf: 'flex-start' }}><ShieldCheck size={12} /> For funded traders</span>
-          <h2 className="h-lg">See the breach before it happens.</h2>
-          <p className="lead">LIMITLESS keeps your account rules on screen while you trade: distance to target, drawdown headroom, your own daily stop and the consistency rule.</p>
-          <span className="tag tag-soft" style={{ alignSelf: 'flex-start' }}><Lock size={11} /> Prop firm presets and payouts come with Pro</span>
-        </div>
-        <div className="glass panel" style={{ gap: 20, padding: 30, '--i': 1 }} data-reveal>
-          <div className="row" style={{ justifyContent: 'space-between' }}>
-            <h3 style={{ fontSize: 18, fontWeight: 600 }}>Account rules</h3>
-            <span className="tag tag-solid"><span style={{ width: 7, height: 7, borderRadius: '50%', background: '#1a9f53' }} /> Safe to trade</span>
-          </div>
-          {rows.map((r, i) => (
-            <div key={r.label} className="col" style={{ gap: 8 }}>
-              <div className="row" style={{ justifyContent: 'space-between', fontSize: 14 }}><span>{r.label}</span><span className="num" style={{ fontWeight: 600 }}>{r.value}</span></div>
-              <Bar pct={r.p} fill={r.warn ? 'linear-gradient(90deg,#fff,#FFC98A)' : '#fff'} delay={0.2 + i * 0.1} />
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
 
 function Psychology() {
   const items = [
@@ -147,26 +98,6 @@ function Psychology() {
   )
 }
 
-function Steps() {
-  const steps = [
-    ['Log', 'Every trade, with your setup, your state and the rules you kept. Ten seconds on desktop or phone.'],
-    ['Review', 'Daily and weekly reviews show what worked, what leaked and which rule broke the most.'],
-    ['Improve', 'Cut the setups that lose, size the ones that win, and trade fewer, better hours.'],
-  ]
-  return (
-    <section className="wrap" style={{ paddingBlock: '40px 20px' }}>
-      <div className="grid g3 steps">
-        {steps.map(([t, b], i) => (
-          <div key={t} className="col step" style={{ gap: 12, '--i': i }} data-reveal>
-            <span className="step-n display">{String(i + 1).padStart(2, '0')}</span>
-            <h3 style={{ fontSize: 30, fontWeight: 600 }}>{t}</h3>
-            <p className="muted" style={{ fontSize: 14.5, lineHeight: 1.6 }}>{b}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  )
-}
 
 function BlogPreview() {
   const latest = ARTICLES.slice(0, 3)
@@ -281,15 +212,19 @@ export default function Home() {
       </header>
       <div className="wrap" style={{ maxWidth: 1240 }}><HeroDevices /></div>
       <Marquee />
+      <Proof />
       <LitStatement />
       <Features />
-      <Rules />
+      <Tour />
+      <RuleSim />
       <Psychology />
-      <Steps />
+      <Day />
+      <Compare />
       <PricingSection />
       <BlogPreview />
       <Faq />
       <FinalCta />
+      <StickyCta />
     </div>
   )
 }
