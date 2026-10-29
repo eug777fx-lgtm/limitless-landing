@@ -3,15 +3,13 @@ import { useEffect, useRef } from 'react'
 // Soft white light trail that follows the mouse. Desktop only, off for reduced motion.
 export default function CursorTrail() {
   const ref = useRef(null)
-  const ret = useRef(null)
   useEffect(() => {
     const canvas = ref.current
     if (!canvas || !matchMedia('(pointer: fine)').matches || matchMedia('(prefers-reduced-motion: reduce)').matches) return
     const ctx = canvas.getContext('2d')
     const LIFE = 420 // ms a point stays on screen
     let pts = [], raf = 0, running = false, dpr = 1
-    const mouse = { x: -100, y: -100 }, head = { x: -100, y: -100 }, rp = { x: -100, y: -100 }
-    const rEl = ret.current, rTxt = rEl && rEl.querySelector('b')
+    const mouse = { x: -100, y: -100 }, head = { x: -100, y: -100 }
     let seen = false
 
     const size = () => {
@@ -42,22 +40,17 @@ export default function CursorTrail() {
           ctx.stroke()
         }
       }
-      // reticle trails a little behind the line
-      rp.x += (mouse.x - rp.x) * 0.2; rp.y += (mouse.y - rp.y) * 0.2
-      if (rEl) rEl.style.transform = `translate(${rp.x.toFixed(1)}px, ${rp.y.toFixed(1)}px)`
-      const still = Math.hypot(mouse.x - head.x, mouse.y - head.y) < 0.5 && Math.hypot(mouse.x - rp.x, mouse.y - rp.y) < 0.5
+      const still = Math.hypot(mouse.x - head.x, mouse.y - head.y) < 0.5
       if (pts.length === 0 && still) { running = false; ctx.clearRect(0, 0, innerWidth, innerHeight); return }
       raf = requestAnimationFrame(frame)
     }
     const move = (e) => {
       if (e.pointerType && e.pointerType !== 'mouse') return
       mouse.x = e.clientX; mouse.y = e.clientY
-      if (!seen) { head.x = rp.x = mouse.x; head.y = rp.y = mouse.y; seen = true; if (rEl) rEl.classList.add('on') }
-      if (rTxt) rTxt.textContent = `X ${String(Math.round(e.clientX)).padStart(4, '0')}  Y ${String(Math.round(e.clientY)).padStart(4, '0')}`
-      if (rEl) rEl.classList.toggle('lock', !!(e.target.closest && e.target.closest('a,button,input,[role=tab],label')))
+      if (!seen) { head.x = mouse.x; head.y = mouse.y; seen = true }
       if (!running) { running = true; raf = requestAnimationFrame(frame) }
     }
-    const leave = () => { seen = false; pts = []; if (rEl) rEl.classList.remove('on') }
+    const leave = () => { seen = false; pts = [] }
     size()
     window.addEventListener('resize', size)
     window.addEventListener('pointermove', move, { passive: true })
@@ -69,10 +62,5 @@ export default function CursorTrail() {
       document.removeEventListener('pointerleave', leave)
     }
   }, [])
-  return (
-    <>
-      <canvas ref={ref} className="cursor-trail" aria-hidden="true" />
-      <div ref={ret} className="reticle" aria-hidden="true"><i className="rt-ring" /><i className="rt-x" /><b /></div>
-    </>
-  )
+  return <canvas ref={ref} className="cursor-trail" aria-hidden="true" />
 }

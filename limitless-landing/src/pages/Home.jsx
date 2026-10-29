@@ -6,7 +6,6 @@ import HeroDevices from '../components/Devices.jsx'
 import Bento from '../components/Bento.jsx'
 import Tour from '../components/Tour.jsx'
 import { Proof, RuleSim, Day, Compare, StickyCta } from '../components/Sections.jsx'
-import { Reactor, BootPanels, HudFrame, GridFloor } from '../components/Hud.jsx'
 import { PricingSection } from '../components/Pricing.jsx'
 import { ArticleCard } from './Blog.jsx'
 import { ARTICLES } from '../content/articles.js'
@@ -15,7 +14,7 @@ function Marquee() {
   const t = ['NQ', 'ES', 'YM', 'GC', 'CL', 'EUR/USD', 'XAU/USD', 'FUNDED TRADING', 'PROP FIRMS', 'FUTURES', 'FOREX', 'APEX', 'TOPSTEP']
   return (
     <div className="marquee" aria-hidden="true">
-      <div className="mono">{[...t, ...t].map((x, i) => <span key={i}><i>◆</i>{x}</span>)}</div>
+      <div className="display">{[...t, ...t].map((x, i) => <span key={i}>{x}</span>)}</div>
     </div>
   )
 }
@@ -56,7 +55,7 @@ function Features() {
   return (
     <section id="features" className="wrap section" style={{ scrollMarginTop: 40 }}>
       <div className="col" style={{ gap: 14, maxWidth: 640, marginBottom: 44 }} data-reveal>
-        <span className="tag tag-soft hud-label" style={{ alignSelf: 'flex-start' }}><Sparkles size={12} /> Features</span>
+        <span className="tag tag-soft" style={{ alignSelf: 'flex-start' }}><Sparkles size={12} /> Features</span>
         <h2 className="h-lg">Your edge lives in the data.</h2>
         <p className="lead">A spreadsheet stores what happened. LIMITLESS tells you why it happened, and what it cost.</p>
       </div>
@@ -90,7 +89,7 @@ function Psychology() {
           </div>
         </div>
         <div className="col" style={{ gap: 16, '--i': 1 }} data-reveal>
-          <span className="tag tag-soft hud-label" style={{ alignSelf: 'flex-start' }}><Brain size={12} /> Psychology</span>
+          <span className="tag tag-soft" style={{ alignSelf: 'flex-start' }}><Brain size={12} /> Psychology</span>
           <h2 className="h-lg">Put a dollar figure on your emotions.</h2>
           <p className="lead">Tag your state before every entry. After a few weeks you stop guessing what tilt costs you, because the number is right there.</p>
         </div>
@@ -106,7 +105,7 @@ function BlogPreview() {
     <section className="wrap section">
       <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-end', gap: 20, flexWrap: 'wrap', marginBottom: 34 }} data-reveal>
         <div className="col" style={{ gap: 14 }}>
-          <span className="tag tag-soft hud-label" style={{ alignSelf: 'flex-start' }}>From the blog</span>
+          <span className="tag tag-soft" style={{ alignSelf: 'flex-start' }}>From the blog</span>
           <h2 className="h-lg">Read like a funded trader.</h2>
         </div>
         <Link to="/blog" className="btn btn-ghost">All articles <ArrowRight size={15} /></Link>
@@ -133,7 +132,7 @@ function Faq() {
     <section id="faq" className="wrap section" style={{ maxWidth: 1040, scrollMarginTop: 40 }}>
       <div className="grid g2" style={{ gap: 44, alignItems: 'start' }}>
         <div className="col" style={{ gap: 14 }} data-reveal>
-          <span className="tag tag-soft hud-label" style={{ alignSelf: 'flex-start' }}>FAQ</span>
+          <span className="tag tag-soft" style={{ alignSelf: 'flex-start' }}>FAQ</span>
           <h2 className="h-lg">Your questions, answered.</h2>
           <p className="muted" style={{ fontSize: 15 }}>Anything else, write to <a href="mailto:support@limitless-journal.com" style={{ textDecoration: 'underline', textUnderlineOffset: 3 }}>support@limitless-journal.com</a>.</p>
         </div>
@@ -177,12 +176,9 @@ function HeroMark({ ws }) {
   return (
     <div className="mark" aria-hidden="true">
       <div className="mark-inner">
-        <span className="crown-zone">
-          <Reactor />
-          <span className="crown-wrap">
-            <span className="crown-burst" />
-            <span className="crown" />
-          </span>
+        <span className="crown-wrap">
+          <span className="crown-burst" />
+          <span className="crown" />
         </span>
         <span className="mark-word" style={{ fontSize: ws }}>
           {letters.map((c, i) => {
@@ -202,8 +198,6 @@ export default function Home() {
   return (
     <div className="stage">
       <Backdrop orbs={[{ left: '2%', top: 820, width: 380, height: 380 }, { right: '3%', top: 1300, width: 440, height: 440 }]} />
-      <HudFrame />
-      <BootPanels />
       <HeroMark ws={ws} />
       <header className="wrap hero-head" style={{ paddingTop: `calc(${ws} * 0.42 + 190px)`, textAlign: 'center' }}>
         <div className="col hero-enter" style={{ alignItems: 'center', gap: 20 }}>
@@ -216,7 +210,7 @@ export default function Home() {
           </div>
         </div>
       </header>
-      <div className="wrap devices-zone" style={{ maxWidth: 1240 }}><GridFloor /><HeroDevices /></div>
+      <div className="wrap" style={{ maxWidth: 1240 }}><HeroDevices /></div>
       <Marquee />
       <Proof />
       <LitStatement />

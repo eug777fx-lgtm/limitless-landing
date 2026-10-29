@@ -1,6 +1,5 @@
 import { Zap, Target, Brain, ShieldCheck, Clock, Upload, CalendarDays, ListChecks, Check, FileSpreadsheet, ArrowRight, Mail } from 'lucide-react'
 import { Snap } from './ui.jsx'
-import { Corners } from './Hud.jsx'
 import { DAILY } from '../lib/sample.js'
 
 // Every card carries a small live visual of the feature it describes (sample data).
@@ -177,8 +176,6 @@ export default function Bento() {
     <Snap className="bento">
       {CARDS.map(({ cls = '', icon, title, body, Vis }, i) => (
         <article key={title} className={'glass bento-card lift ' + cls} data-reveal style={{ '--i': i % 3 }}>
-          <Corners />
-          <span className="bento-id mono">{String(i + 1).padStart(2, '0')}</span>
           <Head icon={icon} title={title} body={body} />
           <Vis />
         </article>
