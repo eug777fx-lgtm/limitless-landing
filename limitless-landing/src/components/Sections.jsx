@@ -58,8 +58,8 @@ export function RuleSim() {
         <div className="col" style={{ gap: 16 }} data-reveal>
           <span className="tag tag-soft" style={{ alignSelf: 'flex-start' }}><ShieldCheck size={12} /> For funded traders</span>
           <h2 className="h-lg">See the breach before it happens.</h2>
-          <p className="lead">Drag today's P&amp;L and watch an Apex 50K evaluation react. LIMITLESS does this live while you trade: target, trailing drawdown, your daily stop and the consistency rule.</p>
-          <span className="tag tag-soft" style={{ alignSelf: 'flex-start' }}><Lock size={11} /> Prop firm presets and payouts come with Pro</span>
+          <p className="lead">Drag today's P&amp;L and watch an Apex 50K evaluation react. With Pro, LIMITLESS tracks this live while you trade: target, trailing drawdown, your daily stop and the consistency rule.</p>
+          <span className="tag tag-soft" style={{ alignSelf: 'flex-start' }}><Lock size={11} /> Pro feature, coming soon</span>
         </div>
         <div className={'glass panel sim sim-' + s.status} style={{ gap: 18, padding: 30, '--i': 1 }} data-reveal>
           <div className="row" style={{ justifyContent: 'space-between', gap: 10 }}>
@@ -125,7 +125,7 @@ const COMPARE = [
   ['Chart screenshots on each trade', 1, 1, 1],
   ['Setup grades from your own results', 0, 0, 1],
   ['Cost of FOMO and revenge in dollars', 0, 0, 1],
-  ['Prop firm rules tracked live', 0, 0, 1],
+  ['A review on every trade: reason, right, wrong', 0, 1, 1],
   ['Daily and weekly review emails', 0, 0, 1],
   ['Works on your phone in seconds', 0, 1, 1],
 ]

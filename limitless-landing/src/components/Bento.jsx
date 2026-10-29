@@ -71,18 +71,18 @@ function MoodVis() {
 }
 
 function ScoreVis() {
-  const r = 42, len = 2 * Math.PI * r
+  // Sample grade mix, illustrative
+  const grades = [['A+', 0.34], ['A', 0.28], ['B', 0.24], ['C', 0.14]]
   return (
-    <div className="bento-vis row" style={{ gap: 16, justifyContent: 'center' }}>
-      <svg width="112" height="112" viewBox="0 0 100 100" aria-hidden="true">
-        <circle cx="50" cy="50" r={r} fill="none" stroke="rgba(255,255,255,.1)" strokeWidth="9" />
-        <circle className="ring-draw" cx="50" cy="50" r={r} fill="none" stroke="#fff" strokeWidth="9" strokeLinecap="round" strokeDasharray={`${len * 0.92} ${len}`} transform="rotate(-90 50 50)" style={{ '--len': len * 0.92, filter: 'drop-shadow(0 0 6px rgba(255,255,255,.5))' }} />
-        <text x="50" y="57" textAnchor="middle" fill="#fff" style={{ font: '700 24px Poppins, sans-serif' }}>92</text>
-      </svg>
-      <div className="col" style={{ gap: 6, fontSize: 12.5 }}>
-        {['1R max', 'Stop at 2 losses', 'NY AM only'].map((t) => <span key={t} className="row" style={{ gap: 7 }}><span className="dot-ok"><Check size={10} strokeWidth={3} /></span>{t}</span>)}
-        <span className="row faint" style={{ gap: 7 }}><span className="dot-no" />No red news</span>
-      </div>
+    <div className="bento-vis col" style={{ gap: 9, justifyContent: 'center' }}>
+      {grades.map(([g, p]) => (
+        <div key={g} className="row" style={{ gap: 10, fontSize: 12.5 }}>
+          <span style={{ width: 22, fontWeight: 600 }}>{g}</span>
+          <span style={{ flex: 1, height: 8, borderRadius: 99, background: 'rgba(255,255,255,.08)', overflow: 'hidden' }}><span style={{ display: 'block', width: `${p * 250}%`, maxWidth: '100%', height: '100%', borderRadius: 99, background: g === 'C' ? 'rgba(255,255,255,.35)' : '#fff' }} /></span>
+          <span className="faint num" style={{ width: 34, textAlign: 'right' }}>{Math.round(p * 100)}%</span>
+        </div>
+      ))}
+      <span className="faint" style={{ fontSize: 11.5 }}>Focused · Patient · FOMO · Revenge</span>
     </div>
   )
 }
@@ -163,7 +163,7 @@ const CARDS = [
   { cls: 'span2', icon: Zap, title: 'Log a trade in seconds', body: 'Symbol, side, entry, stop, exit. P&L and R calculate themselves, and chart screenshots paste straight in.', Vis: LogVis },
   { icon: Target, title: 'Find your A+ setup', body: 'Every setup is graded by its own results.', Vis: GradesVis },
   { icon: Brain, title: 'See what your mood costs', body: 'Tag your state before entry and see the dollar cost of tilt.', Vis: MoodVis },
-  { icon: ShieldCheck, title: 'Score your discipline', body: 'Your rules, ticked on every trade, scored daily.', Vis: ScoreVis },
+  { icon: ShieldCheck, title: 'Grade every setup', body: 'Rate each trade from A+ down and tag the state of mind behind it.', Vis: ScoreVis },
   { icon: Clock, title: 'Know your hours', body: 'Net by weekday and hour, so you trade the window that pays.', Vis: HoursVis },
   { cls: 'span2', icon: Upload, title: 'Bring your history', body: 'Import past trades from a CSV export and get a full review on day one.', Vis: ImportVis },
   { icon: CalendarDays, title: 'P&L calendar', body: 'Every day at a glance, green and red.', Vis: CalendarVis },

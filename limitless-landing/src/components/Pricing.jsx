@@ -7,7 +7,7 @@ export const LITE_FEATURES = [
   'Equity curve, P&L calendar and full analytics',
   'Setup grades, sessions and hour breakdown',
   'Psychology and discipline tracking',
-  'Account rules: target, daily stop, consistency',
+  'Trade review: why you entered, what went right and wrong',
   'Trading plan with AI checklist',
   'CSV import and export',
   'Daily and weekly review emails',
