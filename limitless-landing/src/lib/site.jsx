@@ -5,7 +5,7 @@ export const APP_URL = 'https://app.limitless-journal.com'
 export const SIGNUP_URL = '/checkout'
 // Flip to true once Stripe is connected in the app. Until then checkout stops
 // at the payment step and shows a preview note.
-export const CHECKOUT_LIVE = false
+export const CHECKOUT_LIVE = true
 export const LOGIN_URL = APP_URL
 export const PRICE = 15
 
