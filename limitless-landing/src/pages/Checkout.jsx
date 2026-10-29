@@ -73,6 +73,34 @@ function AccountStep({ form, setForm, onNext }) {
   )
 }
 
+// Live mode: the journal app owns the account (Supabase auth on app.limitless-journal.com),
+// so the site doesn't collect details it can't use. One tap hands off to the app sign up,
+// which remembers the plan and opens Stripe Checkout right after.
+function LiveAccountStep() {
+  const [busy, setBusy] = useState(false)
+  const go = (path) => { setBusy(true); window.location.href = `${APP_URL}/${path}` }
+  return (
+    <div className="co-step col">
+      <div className="col" style={{ gap: 6 }}>
+        <h1 className="co-h">Create your account</h1>
+        <p className="muted" style={{ fontSize: 14.5, lineHeight: 1.6 }}>Two quick steps. Make your login in the journal, then pay on Stripe's secure page. You land back in your journal, unlocked.</p>
+      </div>
+      <div className="col" style={{ gap: 10 }}>
+        {[
+          [Lock, 'Step 1: email and password for your journal login.'],
+          [ShieldCheck, 'Step 2: secure checkout by Stripe. LIMITLESS never sees your card.'],
+          [RefreshCw, 'Cancel anytime. Your trades stay saved.'],
+        ].map(([Icon, t]) => <div key={t} className="well row co-note"><Icon size={16} />{t}</div>)}
+      </div>
+      <button type="button" className="btn btn-primary btn-lg" onClick={() => go('?signup=1&plan=lite')} disabled={busy}>
+        {busy ? <><span className="co-spin" /> Opening the journal</> : <>Create account and continue <ArrowRight size={16} /></>}
+      </button>
+      <p className="muted" style={{ fontSize: 13.5 }}>Already have an account? <button type="button" className="co-link" style={{ background: 'none', border: 0, padding: 0, font: 'inherit', cursor: 'pointer' }} onClick={() => go('?login=1&plan=lite')}>Log in to subscribe</button></p>
+      <p className="faint" style={{ fontSize: 12, lineHeight: 1.55 }}>By continuing you agree to the <Link to="/terms" className="co-link">Terms</Link> and <Link to="/privacy" className="co-link">Privacy Policy</Link>.</p>
+    </div>
+  )
+}
+
 function PaymentStep({ form, onBack, onPay, busy }) {
   return (
     <div className="co-step col">
@@ -146,7 +174,7 @@ export default function Checkout() {
           <div className="co-grid">
             <Summary />
             <div key={step} className="co-pane">
-              {step === 0 && <AccountStep form={form} setForm={setForm} onNext={() => setStep(1)} />}
+              {step === 0 && (CHECKOUT_LIVE ? <LiveAccountStep /> : <AccountStep form={form} setForm={setForm} onNext={() => setStep(1)} />)}
               {step === 1 && <PaymentStep form={form} busy={busy} onBack={() => setStep(0)} onPay={pay} />}
               {step === 2 && <StripeStop onBack={() => setStep(1)} />}
             </div>
