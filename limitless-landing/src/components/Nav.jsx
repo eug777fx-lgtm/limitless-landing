@@ -41,7 +41,7 @@ export function SiteNav() {
   return (
     <div className={'topnav' + (hidden && !open ? ' hide' : '')}>
       <nav aria-label="Main" className="capsule glass" style={{ '--fill': 0.09, '--blur': 30 + 'px' }}>
-        <Link to="/" className="logo-dot ink" aria-label="LIMITLESS home"><Logo /></Link>
+        <Link to="/" className="logo-dot logo-chip" aria-label="LIMITLESS home"><Logo /></Link>
         <span className="hide-md" style={{ display: 'contents' }}>
           {LINKS.map((l) => <Link key={l.label} to={l.to} hash={l.hash} className="nav-link" aria-current={current(l) ? 'page' : undefined}>{l.label}</Link>)}
           <a href={LOGIN_URL} className="nav-link">Log in</a>

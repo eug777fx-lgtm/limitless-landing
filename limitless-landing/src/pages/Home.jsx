@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowRight, Brain, Plus, Minus, Sparkles } from 'lucide-react'
+import { ArrowRight, Brain, Plus, Minus, Sparkles, Check } from 'lucide-react'
 import { Link, SIGNUP_URL, usePageMeta, useReveal, wordSize } from '../lib/site.jsx'
 import { Backdrop, PillBars, Snap } from '../components/ui.jsx'
 import HeroDevices from '../components/Devices.jsx'
@@ -169,17 +169,13 @@ function FinalCta() {
   )
 }
 
-// Intro: the crown drops in and flashes, LIMITLESS opens out under it, then the word
-// sinks behind the headline as a soft blur while the headline pops forward.
+// Intro: LIMITLESS opens out from the centre, then sinks behind the headline as a
+// soft blur while the headline pops forward.
 function HeroMark({ ws }) {
   const letters = 'LIMITLESS'.split('')
   return (
     <div className="mark" aria-hidden="true">
       <div className="mark-inner">
-        <span className="crown-wrap">
-          <span className="crown-burst" />
-          <span className="crown" />
-        </span>
         <span className="mark-word" style={{ fontSize: ws }}>
           {letters.map((c, i) => {
             const d = i - (letters.length - 1) / 2
@@ -198,16 +194,20 @@ export default function Home() {
   return (
     <div className="stage">
       <Backdrop orbs={[{ left: '2%', top: 820, width: 380, height: 380 }, { right: '3%', top: 1300, width: 440, height: 440 }]} />
+      <div className="hero-beam" aria-hidden="true" />
       <HeroMark ws={ws} />
-      <header className="wrap hero-head" style={{ paddingTop: `calc(${ws} * 0.42 + 190px)`, textAlign: 'center' }}>
+      <header className="wrap hero-head" style={{ paddingTop: `calc(${ws} * 0.5 + 92px)`, textAlign: 'center' }}>
         <div className="col hero-enter" style={{ alignItems: 'center', gap: 20 }}>
-          <span className="tag glass" style={{ '--i': 0, padding: '8px 15px', '--fill': 0.08 }}><span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--pos)', animation: 'pulse 2s infinite' }} /> Now open · $15 a month</span>
-          <h1 className="h-xl hero-pop" style={{ '--i': 1, maxWidth: 1120, fontSize: 'clamp(38px, 5.4vw, 74px)' }}>Turn your trades into data. <span className="h1-2">Your data into profit.</span></h1>
+          <Link to="/pricing" className="tag glass hero-pill" style={{ '--i': 0, '--fill': 0.08 }}><span className="hero-live" /> Now open <span className="hero-pill-sep" /> $15 a month <ArrowRight size={13} /></Link>
+          <h1 className="h-xl hero-pop" style={{ '--i': 1, maxWidth: 1120, fontSize: 'clamp(38px, 5.4vw, 74px)' }}>Turn your trades into data. <span className="h1-2 shine">Your data into profit.</span></h1>
           <p className="lead" style={{ '--i': 2, textAlign: 'center', maxWidth: 620 }}>The trading journal for funded futures traders. Log in seconds, see why your results happen, and know how close you are to breaking a rule.</p>
           <div className="row hero-ctas" style={{ '--i': 3, gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
             <a href={SIGNUP_URL} className="btn btn-primary btn-lg">Start for $15 a month <ArrowRight size={16} /></a>
-            <Link to="/" hash="features" className="btn btn-ghost btn-lg">See what it does</Link>
+            <Link to="/" hash="tour" className="btn btn-ghost btn-lg">See it in action</Link>
           </div>
+          <ul className="hero-trust" style={{ '--i': 4 }}>
+            {['Cancel anytime', 'Secure checkout by Stripe', 'Phone and desktop'].map((t) => <li key={t}><Check size={13} strokeWidth={2.6} />{t}</li>)}
+          </ul>
         </div>
       </header>
       <div className="wrap" style={{ maxWidth: 1240 }}><HeroDevices /></div>

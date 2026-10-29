@@ -1,7 +1,11 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'
 
 export const APP_URL = 'https://app.limitless-journal.com'
-export const SIGNUP_URL = APP_URL
+// Every "Start for $15" goes to the site checkout first
+export const SIGNUP_URL = '/checkout'
+// Flip to true once Stripe is connected in the app. Until then checkout stops
+// at the payment step and shows a preview note.
+export const CHECKOUT_LIVE = false
 export const LOGIN_URL = APP_URL
 export const PRICE = 15
 
@@ -15,6 +19,7 @@ export function parseRoute(pathname) {
   const p = pathname.replace(/\/+$/, '') || '/'
   if (p === '/') return { page: 'home' }
   if (p === '/pricing') return { page: 'pricing' }
+  if (p === '/checkout') return { page: 'checkout' }
   if (p === '/blog') return { page: 'blog' }
   const m = p.match(/^\/blog\/([^/]+)$/)
   if (m) return { page: 'article', slug: decodeURIComponent(m[1]) }
@@ -32,6 +37,21 @@ export function RouterProvider({ children }) {
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
   }, [])
+  // Plain <a href="/..."> links also use client routing (no full reload)
+  useEffect(() => {
+    const onClick = (e) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+      const a = e.target.closest && e.target.closest('a[href]')
+      if (!a || a.target || a.hasAttribute('download')) return
+      const url = new URL(a.href, window.location.href)
+      if (url.origin !== window.location.origin || parseRoute(url.pathname).page === 'notfound') return
+      e.preventDefault()
+      navRef.current(url.pathname, url.hash ? url.hash.slice(1) : undefined)
+    }
+    document.addEventListener('click', onClick)
+    return () => document.removeEventListener('click', onClick)
+  }, [])
+  const navRef = useRef(null)
   const navigate = useCallback((path, hash) => {
     const go = () => {
       if (hash) {
@@ -48,6 +68,7 @@ export function RouterProvider({ children }) {
     window.scrollTo({ top: 0 })
     if (hash) setTimeout(go, 120)
   }, [])
+  navRef.current = navigate
   return <RouterContext.Provider value={{ route, navigate }}>{children}</RouterContext.Provider>
 }
 

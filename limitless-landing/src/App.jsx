@@ -4,12 +4,14 @@ import CursorTrail from './components/CursorTrail.jsx'
 import Home from './pages/Home.jsx'
 import { BlogIndex, Article, NotFoundBody } from './pages/Blog.jsx'
 import { Legal, PricingPage } from './pages/Legal.jsx'
+import Checkout from './pages/Checkout.jsx'
 
 function Page() {
   const { route } = useRouter()
   switch (route.page) {
     case 'home': return <Home />
     case 'pricing': return <PricingPage />
+    case 'checkout': return <Checkout />
     case 'blog': return <BlogIndex />
     case 'article': return <Article key={route.slug} slug={route.slug} />
     case 'legal': return <Legal doc={route.doc} />
