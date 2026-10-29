@@ -188,7 +188,7 @@ function HeroMark({ ws }) {
 }
 
 export default function Home() {
-  usePageMeta('LIMITLESS | The trading journal for funded traders', 'The trading journal for funded futures and forex traders. Log trades in seconds, see why your results happen, and track your prop firm rules. $15 a month.')
+  usePageMeta('LIMITLESS | The trading journal for funded traders', 'The trading journal for funded futures and forex traders. Log trades in seconds, see why your results happen, and review every decision. $15 a month.')
   useReveal()
   const ws = wordSize('LIMITLESS', 230)
   return (
@@ -200,7 +200,7 @@ export default function Home() {
         <div className="col hero-enter" style={{ alignItems: 'center', gap: 20 }}>
           <Link to="/pricing" className="tag glass hero-pill" style={{ '--i': 0, '--fill': 0.08 }}><span className="hero-live" /> Now open <span className="hero-pill-sep" /> $15 a month <ArrowRight size={13} /></Link>
           <h1 className="h-xl hero-pop" style={{ '--i': 1, maxWidth: 1120, fontSize: 'clamp(38px, 5.4vw, 74px)' }}>Turn your trades into data. <span className="h1-2 shine">Your data into profit.</span></h1>
-          <p className="lead" style={{ '--i': 2, textAlign: 'center', maxWidth: 620 }}>The trading journal for funded futures traders. Log in seconds, see why your results happen, and know how close you are to breaking a rule.</p>
+          <p className="lead" style={{ '--i': 2, textAlign: 'center', maxWidth: 620 }}>The trading journal for funded futures traders. Log a trade in seconds, see why your results happen, and review every decision you make.</p>
           <div className="row hero-ctas" style={{ '--i': 3, gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
             <a href={SIGNUP_URL} className="btn btn-primary btn-lg">Start for $15 a month <ArrowRight size={16} /></a>
             <Link to="/" hash="tour" className="btn btn-ghost btn-lg">See it in action</Link>
