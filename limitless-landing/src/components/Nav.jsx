@@ -93,7 +93,7 @@ export function Footer() {
             </div>
           </div>
         </div>
-        <p className="faint" style={{ fontSize: 11.5, marginTop: 40, maxWidth: 760, lineHeight: 1.6 }}>LIMITLESS is a journaling and analytics tool, not financial advice. Trading futures and forex carries substantial risk of loss. Sample figures on this site are illustrative. © 2026 LIMITLESS Journal.</p>
+        <p className="faint" style={{ fontSize: 11.5, marginTop: 40, maxWidth: 760, lineHeight: 1.6 }}>LIMITLESS is a journaling and analytics tool, not financial advice. Trading futures and forex carries substantial risk of loss. Sample figures on this site are illustrative. © 2026 LIMITLESS Journal. LIMITLESS is a product of Avenqor Group LLC.</p>
       </div>
       <div aria-hidden="true" className="footer-word">LIMITLESS</div>
     </footer>

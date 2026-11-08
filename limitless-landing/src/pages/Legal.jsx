@@ -8,7 +8,7 @@ const DOCS = {
     title: 'Terms of Service',
     updated: 'October 2026',
     sections: [
-      ['The service', 'LIMITLESS is an online trading journal and analytics tool. It records the trades you enter and shows statistics about them. It does not place trades, hold funds or give financial advice.'],
+      ['The service', 'LIMITLESS is operated by Avenqor Group LLC, a Wyoming limited liability company ("we", "us"). LIMITLESS is an online trading journal and analytics tool. It records the trades you enter and shows statistics about them. It does not place trades, hold funds or give financial advice.'],
       ['Your account', 'You need an account to use the journal. Keep your login private and tell us if you think someone else has access. You are responsible for activity on your account.'],
       ['Subscriptions', 'Lite costs $15 a month, billed in advance through Stripe. Your plan renews each month until you cancel. You can cancel anytime from your account, and you keep access until the end of the period you already paid for.'],
       ['Your data', 'The trades, notes and screenshots you add are yours. You can export them as a CSV file at any time. We only use them to run the service for you.'],
