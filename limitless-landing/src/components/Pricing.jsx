@@ -10,9 +10,9 @@ export const LITE_FEATURES = [
   'Trade review: why you entered, what went right and wrong',
   'Trading plan with AI checklist',
   'CSV import and export',
-  'Daily and weekly review emails',
+  'Weekly recap email',
 ]
-const PRO_TEASE = ['Everything in Lite', 'Prop firm rule engines', 'Payout tracker and scaling planner', 'Multi account command center', 'Advanced analytics', 'Priority support']
+const PRO_TEASE = ['Everything in Lite', 'Daily journal reminders by email', 'Prop firm rule engines', 'Payout tracker and scaling planner', 'Multi account command center', 'Advanced analytics', 'Priority support']
 
 // Pro early list: writes to the same waitlist table the old site used
 function ProList() {

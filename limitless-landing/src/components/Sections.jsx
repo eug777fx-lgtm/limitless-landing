@@ -126,7 +126,7 @@ const COMPARE = [
   ['Setup grades from your own results', 0, 0, 1],
   ['Cost of FOMO and revenge in dollars', 0, 0, 1],
   ['A review on every trade: reason, right, wrong', 0, 1, 1],
-  ['Daily and weekly review emails', 0, 0, 1],
+  ['Weekly recap email of your trading', 0, 0, 1],
   ['Works on your phone in seconds', 0, 1, 1],
 ]
 export function Compare() {

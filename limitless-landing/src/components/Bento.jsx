@@ -168,7 +168,7 @@ const CARDS = [
   { cls: 'span2', icon: Upload, title: 'Bring your history', body: 'Import past trades from a CSV export and get a full review on day one.', Vis: ImportVis },
   { icon: CalendarDays, title: 'P&L calendar', body: 'Every day at a glance, green and red.', Vis: CalendarVis },
   { cls: 'span2', icon: ListChecks, title: 'Trading plan and pre-market checklist', body: 'Write your plan once. LIMITLESS turns it into a checklist you tick before the open.', Vis: PlanVis },
-  { icon: Mail, title: 'Daily and weekly reviews', body: 'A short recap in your inbox after the session and every Sunday.', Vis: ReviewVis },
+  { icon: Mail, title: 'Weekly recap', body: 'Your week in your inbox: P&L, best setup and what to fix. Daily reminders come with Pro.', Vis: ReviewVis },
 ]
 
 export default function Bento() {
