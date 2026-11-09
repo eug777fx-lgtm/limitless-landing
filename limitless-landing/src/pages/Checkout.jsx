@@ -55,7 +55,7 @@ function AccountStep({ form, setForm, onNext }) {
     <form className="co-step col" onSubmit={submit} noValidate>
       <div className="col" style={{ gap: 6 }}>
         <h1 className="co-h">Create your account</h1>
-        <p className="muted" style={{ fontSize: 14.5 }}>This is your login for the journal. Already have one? <a href={APP_URL} className="co-link">Log in</a></p>
+        <p className="muted" style={{ fontSize: 14.5 }}>This is your login for the journal. Already have one? <a href={APP_URL + '/?login=1'} className="co-link">Sign in</a></p>
       </div>
       <label className="co-field"><span>First name</span><input className="input" autoComplete="given-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Eugene" /></label>
       <label className="co-field"><span>Email</span><input className="input" type="email" inputMode="email" autoComplete="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="you@email.com" /></label>
@@ -95,7 +95,7 @@ function LiveAccountStep() {
       <button type="button" className="btn btn-primary btn-lg" onClick={() => go('?signup=1&plan=lite')} disabled={busy}>
         {busy ? <><span className="co-spin" /> Opening the journal</> : <>Create account and continue <ArrowRight size={16} /></>}
       </button>
-      <p className="muted" style={{ fontSize: 13.5 }}>Already have an account? <button type="button" className="co-link" style={{ background: 'none', border: 0, padding: 0, font: 'inherit', cursor: 'pointer' }} onClick={() => go('?login=1&plan=lite')}>Log in to subscribe</button></p>
+      <p className="muted" style={{ fontSize: 13.5 }}>Already have an account? <button type="button" className="co-link" style={{ background: 'none', border: 0, padding: 0, font: 'inherit', cursor: 'pointer' }} onClick={() => go('?login=1&plan=lite')}>Sign in to subscribe</button></p>
       <p className="faint" style={{ fontSize: 12, lineHeight: 1.55 }}>By continuing you agree to the <Link to="/terms" className="co-link">Terms</Link> and <Link to="/privacy" className="co-link">Privacy Policy</Link>.</p>
     </div>
   )

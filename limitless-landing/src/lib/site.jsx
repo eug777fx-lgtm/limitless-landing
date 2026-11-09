@@ -6,7 +6,7 @@ export const SIGNUP_URL = '/checkout'
 // Flip to true once Stripe is connected in the app. Until then checkout stops
 // at the payment step and shows a preview note.
 export const CHECKOUT_LIVE = true
-export const LOGIN_URL = APP_URL
+export const LOGIN_URL = APP_URL + '/?login=1'
 export const PRICE = 15
 
 // Public Supabase client key (same one the app ships). Only used for the Pro early list.

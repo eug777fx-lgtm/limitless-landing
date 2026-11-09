@@ -44,8 +44,8 @@ export function SiteNav() {
         <Link to="/" className="logo-dot logo-chip" aria-label="LIMITLESS home"><Logo /></Link>
         <span className="hide-md" style={{ display: 'contents' }}>
           {LINKS.map((l) => <Link key={l.label} to={l.to} hash={l.hash} className="nav-link" aria-current={current(l) ? 'page' : undefined}>{l.label}</Link>)}
-          <a href={LOGIN_URL} className="nav-link">Log in</a>
         </span>
+        <a href={LOGIN_URL} className="nav-link nav-signin">Sign in</a>
         <a href={SIGNUP_URL} className="btn btn-primary" style={{ minHeight: 44, marginLeft: 4 }}>Start for $15</a>
         <button type="button" className="icon-btn show-md" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={() => setOpen(!open)} style={{ marginLeft: 2 }}>
           {open ? <X size={19} /> : <Menu size={19} />}
@@ -54,7 +54,7 @@ export function SiteNav() {
       {open && (
         <div className="menu-sheet glass show-md" role="dialog" aria-label="Menu">
           {LINKS.map((l) => <Link key={l.label} to={l.to} hash={l.hash} onClick={() => setOpen(false)}>{l.label}</Link>)}
-          <a href={LOGIN_URL}>Log in</a>
+          <a href={LOGIN_URL}>Sign in</a>
           <a href={SIGNUP_URL} className="btn btn-primary btn-lg" style={{ justifyContent: 'center', marginTop: 8, borderRadius: 99, fontSize: 15 }}>Start for $15 a month <ArrowRight size={16} /></a>
         </div>
       )}
@@ -77,7 +77,7 @@ export function Footer() {
               <span className="faint">Product</span>
               <Link to="/" hash="features">Features</Link>
               <Link to="/pricing">Pricing</Link>
-              <a href={LOGIN_URL}>Log in</a>
+              <a href={LOGIN_URL}>Sign in</a>
             </div>
             <div className="col" style={{ gap: 10, fontSize: 13.5 }}>
               <span className="faint">Learn</span>
