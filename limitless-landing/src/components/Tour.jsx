@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { LayoutDashboard, BookOpen, BarChart3, ShieldCheck, Brain, Settings, Check, Image as ImageIcon, Lock } from 'lucide-react'
 import { Scaled, TabletScreen } from './Devices.jsx'
 import { LOGO } from './ui.jsx'
+import { Shot } from '../lib/theme.jsx'
 
 // ── Shared app shell (same look as the hero tablet) ───────────────────
 const NAV = [LayoutDashboard, BookOpen, BarChart3, ShieldCheck, Brain, Settings]
@@ -27,7 +28,7 @@ function Shell({ on, title, sub, right, children }) {
 }
 const Card = ({ children, style, className = '' }) => <div className={'well col ' + className} style={{ borderRadius: 22, padding: '18px 20px', gap: 12, ...style }}>{children}</div>
 const H = ({ children, aside }) => <div className="row" style={{ justifyContent: 'space-between' }}><span style={{ fontSize: 14, fontWeight: 600 }}>{children}</span>{aside && <span style={{ fontSize: 12, color: 'var(--fg3)' }}>{aside}</span>}</div>
-const Pill = ({ children, solid }) => <span style={{ padding: '6px 12px', borderRadius: 99, fontSize: 12.5, fontWeight: 500, background: solid ? '#fff' : 'rgba(255,255,255,.07)', color: solid ? '#000' : 'var(--fg2)' }}>{children}</span>
+const Pill = ({ children, solid }) => <span style={{ padding: '6px 12px', borderRadius: 99, fontSize: 12.5, fontWeight: 500, background: solid ? 'var(--fg)' : 'color-mix(in srgb, var(--fg) 7%, transparent)', color: solid ? 'var(--bg)' : 'var(--fg2)' }}>{children}</span>
 
 // ── Journal: trade list + one trade opened with its chart ─────────────
 function Candles() {
@@ -48,17 +49,17 @@ function Candles() {
   const entry = c[22].o, stop = c[20].l - 0.4, exit = c[33].c
   return (
     <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', display: 'block' }} aria-hidden="true">
-      <rect x={bw * 22} y={y(exit)} width={bw * 12} height={y(entry) - y(exit)} fill="rgba(166,242,190,.08)" />
-      <rect x={bw * 22} y={y(entry)} width={bw * 12} height={y(stop) - y(entry)} fill="rgba(255,169,161,.08)" />
-      {[['Exit', exit, 'rgba(166,242,190,.9)'], ['Entry', entry, '#fff'], ['Stop', stop, 'rgba(255,169,161,.9)']].map(([l, v, col]) => (
+      <rect x={bw * 22} y={y(exit)} width={bw * 12} height={y(entry) - y(exit)} fill="color-mix(in srgb, var(--pos) 8%, transparent)" />
+      <rect x={bw * 22} y={y(entry)} width={bw * 12} height={y(stop) - y(entry)} fill="color-mix(in srgb, var(--neg) 8%, transparent)" />
+      {[['Exit', exit, 'color-mix(in srgb, var(--pos) 90%, transparent)'], ['Entry', entry, 'var(--fg)'], ['Stop', stop, 'color-mix(in srgb, var(--neg) 90%, transparent)']].map(([l, v, col]) => (
         <g key={l}><line x1={bw * 22} x2={W} y1={y(v)} y2={y(v)} stroke={col} strokeDasharray="4 5" /><text x={W - 4} y={y(v) - 5} textAnchor="end" fill={col} style={{ font: '600 11px Inter, sans-serif' }}>{l}</text></g>
       ))}
       {c.map((k, i) => {
-        const up = k.c >= k.o, col = up ? '#fff' : 'rgba(255,255,255,.35)'
-        return <g key={i}><line x1={bw * i + bw / 2} x2={bw * i + bw / 2} y1={y(k.h)} y2={y(k.l)} stroke={col} /><rect x={bw * i + 2} y={y(Math.max(k.o, k.c))} width={bw - 4} height={Math.max(1.5, Math.abs(y(k.o) - y(k.c)))} rx="1.5" fill={up ? '#fff' : 'rgba(255,255,255,.18)'} stroke={col} strokeWidth=".6" /></g>
+        const up = k.c >= k.o, col = up ? 'var(--fg)' : 'color-mix(in srgb, var(--fg) 35%, transparent)'
+        return <g key={i}><line x1={bw * i + bw / 2} x2={bw * i + bw / 2} y1={y(k.h)} y2={y(k.l)} stroke={col} /><rect x={bw * i + 2} y={y(Math.max(k.o, k.c))} width={bw - 4} height={Math.max(1.5, Math.abs(y(k.o) - y(k.c)))} rx="1.5" fill={up ? 'var(--fg)' : 'color-mix(in srgb, var(--fg) 18%, transparent)'} stroke={col} strokeWidth=".6" /></g>
       })}
-      <circle cx={bw * 20 + bw / 2} cy={y(c[20].l)} r="11" fill="none" stroke="rgba(255,255,255,.5)" strokeDasharray="3 3" />
-      <text x={bw * 20 + bw / 2} y={y(c[20].l) + 26} textAnchor="middle" fill="rgba(255,255,255,.6)" style={{ font: '500 11px Inter, sans-serif' }}>Sweep</text>
+      <circle cx={bw * 20 + bw / 2} cy={y(c[20].l)} r="11" fill="none" stroke="color-mix(in srgb, var(--fg) 50%, transparent)" strokeDasharray="3 3" />
+      <text x={bw * 20 + bw / 2} y={y(c[20].l) + 26} textAnchor="middle" fill="color-mix(in srgb, var(--fg) 60%, transparent)" style={{ font: '500 11px Inter, sans-serif' }}>Sweep</text>
     </svg>
   )
 }
@@ -79,7 +80,7 @@ function JournalScreen() {
       <div style={{ display: 'grid', gridTemplateColumns: '420px 1fr', gap: 14, flex: 1, minHeight: 0 }}>
         <Card style={{ padding: '6px 16px', gap: 0 }}>
           {TRADES.map(([d, s, side, set, pnl, r, on]) => (
-            <div key={d + set} className="row" style={{ gap: 12, height: 72, borderTop: on ? 'none' : '1px solid var(--line)', fontSize: 13.5, margin: on ? '6px -8px' : 0, padding: on ? '0 8px' : 0, borderRadius: on ? 16 : 0, background: on ? 'rgba(255,255,255,.08)' : 'none', boxShadow: on ? 'inset 0 0 0 1px rgba(255,255,255,.25)' : 'none' }}>
+            <div key={d + set} className="row" style={{ gap: 12, height: 72, borderTop: on ? 'none' : '1px solid var(--line)', fontSize: 13.5, margin: on ? '6px -8px' : 0, padding: on ? '0 8px' : 0, borderRadius: on ? 16 : 0, background: on ? 'color-mix(in srgb, var(--fg) 8%, transparent)' : 'none', boxShadow: on ? 'inset 0 0 0 1px color-mix(in srgb, var(--fg) 25%, transparent)' : 'none' }}>
               <span className="ink" style={{ width: 46, height: 40, borderRadius: 11, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', lineHeight: 1.1 }}><b style={{ fontSize: 12.5 }}>{s}</b><small style={{ fontSize: 8, color: 'var(--fg3)' }}>{side.toUpperCase()}</small></span>
               <div className="col" style={{ flex: 1 }}><span style={{ fontWeight: 500 }}>{set}</span><span style={{ fontSize: 11.5, color: 'var(--fg3)' }}>{d} · {r}</span></div>
               <span className="num" style={{ fontWeight: 600, color: pnl >= 0 ? 'var(--pos)' : 'var(--neg)' }}>{pnl > 0 ? '+' : '-'}${Math.abs(pnl)}</span>
@@ -133,7 +134,7 @@ function AnalyticsScreen() {
               <span style={{ width: 36 }}><span className={'grade' + (i === 0 ? ' top' : g === 'D' ? ' bad' : '')}>{g}</span></span>
               <span style={{ flex: 1 }}>{n}</span>
               <span className="num" style={{ width: 54, textAlign: 'right', color: 'var(--fg2)' }}>{t}</span>
-              <span className="row" style={{ width: 120, gap: 8 }}><span style={{ flex: 1, height: 7, borderRadius: 99, background: 'rgba(255,255,255,.08)', overflow: 'hidden' }}><i style={{ display: 'block', height: '100%', width: w + '%', borderRadius: 99, background: g === 'D' ? 'var(--neg)' : '#fff' }} /></span><span className="num" style={{ fontSize: 12 }}>{w}%</span></span>
+              <span className="row" style={{ width: 120, gap: 8 }}><span style={{ flex: 1, height: 7, borderRadius: 99, background: 'color-mix(in srgb, var(--fg) 8%, transparent)', overflow: 'hidden' }}><i style={{ display: 'block', height: '100%', width: w + '%', borderRadius: 99, background: g === 'D' ? 'var(--neg)' : 'var(--fg)' }} /></span><span className="num" style={{ fontSize: 12 }}>{w}%</span></span>
               <span className="num" style={{ width: 70, textAlign: 'right', fontWeight: 600, color: net >= 0 ? 'var(--pos)' : 'var(--neg)' }}>{net >= 0 ? '+' : '-'}${Math.abs(net).toLocaleString()}</span>
             </div>
           ))}
@@ -145,7 +146,7 @@ function AnalyticsScreen() {
               {days.map(([d, v]) => (
                 <div key={d} className="col" style={{ flex: 1, alignItems: 'center', gap: 6, justifyContent: 'flex-end', height: '100%' }}>
                   <span className="num" style={{ fontSize: 11, color: v >= 0 ? 'var(--fg2)' : 'var(--neg)' }}>{v >= 0 ? '+' : '-'}${Math.abs(v)}</span>
-                  <i style={{ width: '100%', maxWidth: 34, height: Math.abs(v) / 9, borderRadius: 10, background: v >= 0 ? (v > 800 ? '#fff' : 'rgba(255,255,255,.55)') : 'rgba(255,169,161,.85)', boxShadow: v > 800 ? '0 0 16px rgba(255,255,255,.4)' : 'none' }} />
+                  <i style={{ width: '100%', maxWidth: 34, height: Math.abs(v) / 9, borderRadius: 10, background: v >= 0 ? (v > 800 ? 'var(--fg)' : 'color-mix(in srgb, var(--fg) 55%, transparent)') : 'color-mix(in srgb, var(--neg) 85%, transparent)', boxShadow: v > 800 ? '0 0 16px color-mix(in srgb, var(--fg) 40%, transparent)' : 'none' }} />
                   <span style={{ fontSize: 11.5, color: 'var(--fg3)' }}>{d}</span>
                 </div>
               ))}
@@ -154,7 +155,7 @@ function AnalyticsScreen() {
           <Card>
             <H aside="61 trades">R distribution</H>
             <div className="row" style={{ alignItems: 'flex-end', gap: 5, height: 92 }}>
-              {rdist.map((h, i) => <i key={i} style={{ flex: 1, height: h * 7.5, borderRadius: 6, background: i < 6 ? 'rgba(255,169,161,.7)' : '#fff', opacity: i < 6 ? 1 : 0.55 + h / 25 }} />)}
+              {rdist.map((h, i) => <i key={i} style={{ flex: 1, height: h * 7.5, borderRadius: 6, background: i < 6 ? 'color-mix(in srgb, var(--neg) 70%, transparent)' : 'var(--fg)', opacity: i < 6 ? 1 : 0.55 + h / 25 }} />)}
             </div>
             <div className="row num" style={{ justifyContent: 'space-between', fontSize: 11, color: 'var(--fg3)' }}><span>-2R</span><span>0</span><span>+3R</span></div>
           </Card>
@@ -166,25 +167,25 @@ function AnalyticsScreen() {
 
 // ── Rules ─────────────────────────────────────────────────────────────
 function RulesScreen() {
-  const g = [['Profit target', '$2,140 of $3,000', 0.71, '#fff'], ['Trailing drawdown', '$2,500 left of $2,500', 1, '#fff'], ['Daily stop', '$120 used of $600', 0.2, '#fff'], ['Consistency, 30% max', 'Best day is 29%', 0.95, 'linear-gradient(90deg,#fff,#FFC98A)']]
+  const g = [['Profit target', '$2,140 of $3,000', 0.71, 'var(--fg)'], ['Trailing drawdown', '$2,500 left of $2,500', 1, 'var(--fg)'], ['Daily stop', '$120 used of $600', 0.2, 'var(--fg)'], ['Consistency, 30% max', 'Best day is 29%', 0.95, 'var(--fg2)']]
   const log = [['10:41', 'Trade closed +$530. Consistency now 29% of profit.', 'warn'], ['10:02', 'Pre-market checklist complete. Safe to trade.', 'ok'], ['Oct 27', 'Daily stop reached at -$600. Trading locked for the day.', 'bad'], ['Oct 23', 'Payout eligible after 2 more winning days.', 'ok']]
   return (
-    <Shell on={3} title="Account rules" sub="Apex 50K evaluation" right={<span className="row" style={{ gap: 8, background: '#fff', color: '#000', borderRadius: 99, padding: '9px 16px', fontSize: 13, fontWeight: 600 }}><span style={{ width: 8, height: 8, borderRadius: 99, background: '#1a9f53' }} /> Safe to trade</span>}>
+    <Shell on={3} title="Account rules" sub="Apex 50K evaluation" right={<span className="row" style={{ gap: 8, background: 'var(--fg)', color: 'var(--bg)', borderRadius: 99, padding: '9px 16px', fontSize: 13, fontWeight: 600 }}><span style={{ width: 8, height: 8, borderRadius: 99, background: '#1a9f53' }} /> Safe to trade</span>}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
         {g.map(([k, v, p, fill]) => (
           <Card key={k} style={{ gap: 10 }}>
             <div className="row" style={{ justifyContent: 'space-between' }}><span style={{ fontSize: 14, fontWeight: 600 }}>{k}</span><span className="num" style={{ fontSize: 13, color: 'var(--fg2)' }}>{v}</span></div>
-            <div style={{ height: 12, borderRadius: 99, background: 'rgba(255,255,255,.08)', overflow: 'hidden' }}><i style={{ display: 'block', height: '100%', width: p * 100 + '%', borderRadius: 99, background: fill, boxShadow: '0 0 12px rgba(255,255,255,.35)' }} /></div>
+            <div style={{ height: 12, borderRadius: 99, background: 'color-mix(in srgb, var(--fg) 8%, transparent)', overflow: 'hidden' }}><i style={{ display: 'block', height: '100%', width: p * 100 + '%', borderRadius: 99, background: fill, boxShadow: '0 0 12px color-mix(in srgb, var(--fg) 35%, transparent)' }} /></div>
           </Card>
         ))}
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 14, flex: 1 }}>
         <Card style={{ alignItems: 'center', justifyContent: 'center', gap: 8 }}>
           <svg width="170" height="170" viewBox="0 0 100 100" aria-hidden="true">
-            <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,.1)" strokeWidth="9" />
-            <circle cx="50" cy="50" r="42" fill="none" stroke="#fff" strokeWidth="9" strokeLinecap="round" strokeDasharray={`${263.9 * 0.71} 264`} transform="rotate(-90 50 50)" style={{ filter: 'drop-shadow(0 0 6px rgba(255,255,255,.5))' }} />
-            <text x="50" y="52" textAnchor="middle" fill="#fff" style={{ font: '700 22px Poppins, sans-serif' }}>71%</text>
-            <text x="50" y="65" textAnchor="middle" fill="rgba(255,255,255,.55)" style={{ font: '500 7.5px Inter, sans-serif' }}>to target</text>
+            <circle cx="50" cy="50" r="42" fill="none" stroke="color-mix(in srgb, var(--fg) 10%, transparent)" strokeWidth="9" />
+            <circle cx="50" cy="50" r="42" fill="none" stroke='var(--fg)' strokeWidth="9" strokeLinecap="round" strokeDasharray={`${263.9 * 0.71} 264`} transform="rotate(-90 50 50)" style={{ filter: 'drop-shadow(0 0 6px color-mix(in srgb, var(--fg) 50%, transparent))' }} />
+            <text x="50" y="52" textAnchor="middle" fill='var(--fg)' style={{ font: '700 22px Poppins, sans-serif' }}>71%</text>
+            <text x="50" y="65" textAnchor="middle" fill="color-mix(in srgb, var(--fg) 55%, transparent)" style={{ font: '500 7.5px Inter, sans-serif' }}>to target</text>
           </svg>
           <span style={{ fontSize: 14, fontWeight: 600 }}>$860 to pass</span>
           <span style={{ fontSize: 12, color: 'var(--fg3)' }}>About 4 average green days</span>
@@ -216,8 +217,8 @@ function MindScreenBig() {
           <div className="row" style={{ alignItems: 'flex-end', gap: 16, flex: 1, padding: '10px 10px 0' }}>
             {bars.map(([l, v, h]) => (
               <div key={l} className="col" style={{ flex: 1, alignItems: 'center', gap: 8, justifyContent: 'flex-end', height: '100%' }}>
-                <span className="num" style={{ fontSize: 12, fontWeight: 600, padding: l === 'Focused' ? '4px 8px' : 0, borderRadius: 8, background: l === 'Focused' ? '#fff' : 'none', color: l === 'Focused' ? '#000' : v < 0 ? 'var(--neg)' : 'var(--fg2)' }}>{v > 0 ? '+' : '-'}${Math.abs(v).toLocaleString()}</span>
-                <div style={{ width: 18, height: 300, borderRadius: 99, background: 'rgba(255,255,255,.06)', position: 'relative', overflow: 'hidden' }}><i style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: h + '%', borderRadius: 99, background: v < 0 ? 'rgba(255,169,161,.85)' : l === 'Focused' ? '#fff' : 'rgba(255,255,255,.55)' }} /></div>
+                <span className="num" style={{ fontSize: 12, fontWeight: 600, padding: l === 'Focused' ? '4px 8px' : 0, borderRadius: 8, background: l === 'Focused' ? 'var(--fg)' : 'none', color: l === 'Focused' ? 'var(--bg)' : v < 0 ? 'var(--neg)' : 'var(--fg2)' }}>{v > 0 ? '+' : '-'}${Math.abs(v).toLocaleString()}</span>
+                <div style={{ width: 18, height: 300, borderRadius: 99, background: 'color-mix(in srgb, var(--fg) 6%, transparent)', position: 'relative', overflow: 'hidden' }}><i style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: h + '%', borderRadius: 99, background: v < 0 ? 'color-mix(in srgb, var(--neg) 85%, transparent)' : l === 'Focused' ? 'var(--fg)' : 'color-mix(in srgb, var(--fg) 55%, transparent)' }} /></div>
                 <span style={{ fontSize: 12, color: 'var(--fg2)' }}>{l}</span>
               </div>
             ))}
@@ -242,11 +243,11 @@ function MindScreenBig() {
 }
 
 const TABS = [
-  { key: 'dash', label: 'Dashboard', title: 'Your whole month on one screen.', body: 'Net P&L, win rate, profit factor and discipline score, with your equity curve against the profit target and a P&L calendar.', points: ['Equity curve against your target', 'Green and red P&L calendar', 'Recent trades with R multiples'], Screen: () => <TabletScreen synced toast={false} /> },
-  { key: 'journal', label: 'Journal', title: 'Every trade, with the why behind it.', body: 'Chart screenshot, setup grade, state of mind, why you entered and what you would change, all on one trade.', points: ['Paste a chart screenshot', 'Tag setup, session and state', 'Grade every setup from A+ down'], Screen: JournalScreen },
-  { key: 'analytics', label: 'Analytics', title: 'Know exactly where your edge is.', body: 'Setups graded by their own results, net by weekday and hour, and the full spread of your R multiples.', points: ['Setup grades from A+ to D', 'Best and worst weekdays', 'R distribution of every trade'], Screen: AnalyticsScreen },
+  { key: 'dash', label: 'Dashboard', title: 'Your whole month on one screen.', body: 'Your P&L for the week, month or year with the equity line behind it, plus win rate, profit factor, up days and your latest trades.', points: ['Live P&L with your equity line', 'Week, month, year or all time', 'Your recent trades with their charts'], Screen: () => <Shot name="tour-dash" alt="LIMITLESS dashboard" /> },
+  { key: 'journal', label: 'Journal', title: 'Every trade, with its chart.', body: 'Every trade is a card with its chart. Tap one for the full review: setup, session, state of mind, why you took it and what you would change.', points: ['Search any symbol when you log', 'Your own tags plus the classics', 'Paste a chart screenshot in seconds'], Screen: () => <Shot name="tour-journal" alt="LIMITLESS journal" /> },
+  { key: 'analytics', label: 'Analytics', title: 'Know exactly where your edge is.', body: 'Your best session, setups graded by their own results, net by weekday and session, and the full spread of your R multiples.', points: ['Playbook by setup, grade and symbol', 'When you make money', 'R distribution of every trade'], Screen: () => <Shot name="tour-analytics" alt="LIMITLESS analytics" /> },
+  { key: 'mind', label: 'Mindset', title: 'Train the mind behind the trades.', body: 'A short read every day, your own reason for doing this, what your journal says about you, and one honest question to answer before you trade.', points: ['A new daily read', 'Insights from your own trades', 'A question for today'], Screen: () => <Shot name="tour-mind" alt="LIMITLESS mindset" /> },
   { key: 'rules', label: 'Rules · Pro', title: 'Coming with Pro: your account rules, always on.', body: 'Distance to target, trailing drawdown, your daily stop and the consistency rule, with alerts before you break one.', points: ['Live distance to the profit target', 'Daily stop that locks the day', 'Consistency rule warning'], Screen: RulesScreen },
-  { key: 'mind', label: 'Psychology', title: 'Turn feelings into numbers.', body: 'See what each state of mind pays you, what tilt costs, and the patterns you repeat without noticing.', points: ['Net and win rate by state', 'Monthly tilt cost', 'Patterns found for you'], Screen: MindScreenBig },
 ]
 
 export default function Tour() {

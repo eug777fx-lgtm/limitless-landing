@@ -70,9 +70,9 @@ function Psychology() {
     { label: 'Focused', value: '+$1,840', pct: 0.92, peak: true },
     { label: 'Patient', value: '+$960', pct: 0.55 },
     { label: 'Calm', value: '+$410', pct: 0.3 },
-    { label: 'Hesitant', value: '-$220', pct: 0.16, fill: 'rgba(255,255,255,0.45)' },
-    { label: 'FOMO', value: '-$480', pct: 0.28, fill: 'rgba(255,169,161,0.85)' },
-    { label: 'Revenge', value: '-$370', pct: 0.22, fill: 'rgba(255,169,161,0.85)' },
+    { label: 'Hesitant', value: '-$220', pct: 0.16, fill: 'color-mix(in srgb, var(--fg) 45%, transparent)' },
+    { label: 'FOMO', value: '-$480', pct: 0.28, fill: 'color-mix(in srgb, var(--neg) 85%, transparent)' },
+    { label: 'Revenge', value: '-$370', pct: 0.22, fill: 'color-mix(in srgb, var(--neg) 85%, transparent)' },
   ]
   return (
     <section className="wrap section">

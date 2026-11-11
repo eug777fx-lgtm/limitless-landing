@@ -46,7 +46,7 @@ function GradesVis() {
         <div key={n} className="row" style={{ gap: 10, fontSize: 13 }}>
           <span className={'grade' + (i === 0 ? ' top' : i === 3 ? ' bad' : '')}>{g}</span>
           <span style={{ flex: 1, minWidth: 0 }}>{n}</span>
-          <div className="mini-bar well"><i style={{ width: `${w * 100}%`, '--d': `${0.2 + i * 0.1}s`, background: i === 3 ? 'var(--neg)' : '#fff' }} /></div>
+          <div className="mini-bar well"><i style={{ width: `${w * 100}%`, '--d': `${0.2 + i * 0.1}s`, background: i === 3 ? 'var(--neg)' : 'var(--fg)' }} /></div>
           <span className="num faint" style={{ width: 34, textAlign: 'right' }}>{Math.round(w * 100)}%</span>
         </div>
       ))}
@@ -55,7 +55,7 @@ function GradesVis() {
 }
 
 function MoodVis() {
-  const b = [['Focused', 92, '#fff'], ['Patient', 55, 'rgba(255,255,255,.6)'], ['FOMO', 30, 'var(--neg)'], ['Revenge', 24, 'var(--neg)']]
+  const b = [['Focused', 92, 'var(--fg)'], ['Patient', 55, 'color-mix(in srgb, var(--fg) 60%, transparent)'], ['FOMO', 30, 'var(--neg)'], ['Revenge', 24, 'var(--neg)']]
   return (
     <div className="bento-vis row" style={{ gap: 14, alignItems: 'flex-end', justifyContent: 'center', height: 118 }}>
       {b.map(([l, h, c], i) => (
@@ -78,7 +78,7 @@ function ScoreVis() {
       {grades.map(([g, p]) => (
         <div key={g} className="row" style={{ gap: 10, fontSize: 12.5 }}>
           <span style={{ width: 22, fontWeight: 600 }}>{g}</span>
-          <span style={{ flex: 1, height: 8, borderRadius: 99, background: 'rgba(255,255,255,.08)', overflow: 'hidden' }}><span style={{ display: 'block', width: `${p * 250}%`, maxWidth: '100%', height: '100%', borderRadius: 99, background: g === 'C' ? 'rgba(255,255,255,.35)' : '#fff' }} /></span>
+          <span style={{ flex: 1, height: 8, borderRadius: 99, background: 'color-mix(in srgb, var(--fg) 8%, transparent)', overflow: 'hidden' }}><span style={{ display: 'block', width: `${p * 250}%`, maxWidth: '100%', height: '100%', borderRadius: 99, background: g === 'C' ? 'color-mix(in srgb, var(--fg) 35%, transparent)' : 'var(--fg)' }} /></span>
           <span className="faint num" style={{ width: 34, textAlign: 'right' }}>{Math.round(p * 100)}%</span>
         </div>
       ))}
@@ -98,7 +98,7 @@ function HoursVis() {
       {grid.map((row, i) => (
         <div key={i} className="row" style={{ gap: 4 }}>
           <span className="faint" style={{ width: 14, fontSize: 10 }}>{'MTWTF'[i]}</span>
-          {row.map((v, j) => <span key={j} className="heat" style={{ '--d': `${(i * 6 + j) * 0.025}s`, background: v > 0 ? `rgba(255,255,255,${0.12 + v * 0.2})` : v < 0 ? `rgba(255,169,161,${0.1 - v * 0.17})` : 'rgba(255,255,255,.05)' }} />)}
+          {row.map((v, j) => <span key={j} className="heat" style={{ '--d': `${(i * 6 + j) * 0.025}s`, background: v > 0 ? `color-mix(in srgb, var(--fg) ${Math.round((0.12 + v * 0.2) * 100)}%, transparent)` : v < 0 ? `color-mix(in srgb, var(--neg) ${Math.round((0.1 - v * 0.17) * 100)}%, transparent)` : 'color-mix(in srgb, var(--fg) 5%, transparent)' }} />)}
         </div>
       ))}
       <div className="row" style={{ gap: 4, paddingLeft: 18 }}>{hours.map((h) => <span key={h} className="faint num" style={{ flex: 1, fontSize: 9.5, textAlign: 'center' }}>{h}</span>)}</div>
@@ -128,7 +128,7 @@ function CalendarVis() {
       {weeks.flat().map((d, i) => {
         const n = by[d]
         const a = n ? 0.16 + Math.min(1, Math.abs(n) / 640) * 0.6 : 0
-        return <span key={i} className="cal num" style={{ visibility: d ? 'visible' : 'hidden', background: n ? (n > 0 ? `rgba(255,255,255,${a})` : `rgba(255,169,161,${a * 0.8})`) : 'rgba(255,255,255,.04)', color: n > 0 && a > 0.5 ? '#000' : '#fff' }}>{d || ''}</span>
+        return <span key={i} className="cal num" style={{ visibility: d ? 'visible' : 'hidden', background: n ? (n > 0 ? `color-mix(in srgb, var(--fg) ${Math.round((a) * 100)}%, transparent)` : `color-mix(in srgb, var(--neg) ${Math.round((a * 0.8) * 100)}%, transparent)`) : 'color-mix(in srgb, var(--fg) 4%, transparent)', color: n > 0 && a > 0.5 ? 'var(--bg)' : 'var(--fg)' }}>{d || ''}</span>
       })}
     </div>
   )

@@ -27,9 +27,9 @@ function Cover({ article, tall }) {
   return (
     <div className="thumb ink cover" style={{ aspectRatio: tall ? '16 / 10' : '16 / 9' }}>
       <svg viewBox="0 0 400 110" preserveAspectRatio="none" aria-hidden="true" style={{ position: 'absolute', inset: 'auto 0 0 0', width: '100%', height: '62%' }}>
-        <defs><linearGradient id={'cv' + seed} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fff" stopOpacity=".16" /><stop offset="1" stopColor="#fff" stopOpacity="0" /></linearGradient></defs>
+        <defs><linearGradient id={'cv' + seed} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor='var(--fg)' stopOpacity=".16" /><stop offset="1" stopColor='var(--fg)' stopOpacity="0" /></linearGradient></defs>
         <path d={`${d} L400 110 L0 110 Z`} fill={`url(#cv${seed})`} />
-        <path d={d} fill="none" stroke="#fff" strokeOpacity=".7" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+        <path d={d} fill="none" stroke='var(--fg)' strokeOpacity=".7" strokeWidth="2" vectorEffect="non-scaling-stroke" />
       </svg>
       <span className="cover-word display" aria-hidden="true">{article.category.split(' ')[0]}</span>
     </div>
@@ -113,7 +113,7 @@ function Block({ b, bySlug }) {
     }
     case 'cta': return (
       <div className="glass inline-cta">
-        <p style={{ margin: 0, color: '#fff', fontSize: 17 }}>{b.text}</p>
+        <p style={{ margin: 0, color: 'var(--fg)', fontSize: 17 }}>{b.text}</p>
         <a href={SIGNUP_URL} className="btn btn-primary">Start for $15 a month <ArrowRight size={15} /></a>
       </div>
     )

@@ -1,6 +1,6 @@
 import { RouterProvider, useRouter, useGlassLight } from './lib/site.jsx'
 import { SiteNav, Footer } from './components/Nav.jsx'
-import CursorTrail from './components/CursorTrail.jsx'
+import { SiteScene, useSiteTheme } from './lib/theme.jsx'
 import Home from './pages/Home.jsx'
 import { BlogIndex, Article, NotFoundBody } from './pages/Blog.jsx'
 import { Legal, PricingPage } from './pages/Legal.jsx'
@@ -22,15 +22,16 @@ function Page() {
 function Shell() {
   const { route } = useRouter()
   useGlassLight()
+  useSiteTheme()
   return (
     <>
+      <SiteScene />
       <a href="#main" className="skip">Skip to content</a>
       <SiteNav />
       <main id="main" key={route.page + (route.slug || route.doc || '')} className="page-in">
         <Page />
       </main>
       <Footer />
-      <CursorTrail />
     </>
   )
 }

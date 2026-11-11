@@ -8,11 +8,12 @@ export const LITE_FEATURES = [
   'Setup grades, sessions and hour breakdown',
   'Psychology and discipline tracking',
   'Trade review: why you entered, what went right and wrong',
-  'Trading plan with AI checklist',
+  'Trading plan with a pre-trade checklist and daily limits',
+  'Mindset: a daily read and a question for each day',
   'CSV import and export',
   'Weekly recap email',
 ]
-const PRO_TEASE = ['Everything in Lite', 'Daily journal reminders by email', 'Prop firm rule engines', 'Payout tracker and scaling planner', 'Multi account command center', 'Advanced analytics', 'Priority support']
+const PRO_TEASE = ['Everything in Lite', 'The LIMITLESS Network: feed, leaderboard and challenges', 'TradeSync copy trading', 'Daily journal reminders by email', 'Prop firm rule engines', 'Payout tracker and scaling planner', 'Multi account command center', 'Advanced analytics', 'Priority support']
 
 // Pro early list: writes to the same waitlist table the old site used
 function ProList() {
@@ -59,12 +60,12 @@ export function PlanCards() {
         </div>
         <div className="row" style={{ alignItems: 'baseline', gap: 4 }}>
           <span className="big num" style={{ fontSize: 64 }}>$15</span>
-          <span className="display" style={{ fontSize: 28, fontWeight: 600, color: 'rgba(255,255,255,0.45)' }}>/m</span>
+          <span className="display" style={{ fontSize: 28, fontWeight: 600, color: 'color-mix(in srgb, var(--fg) 45%, transparent)' }}>/m</span>
         </div>
         <p className="muted" style={{ fontSize: 14, margin: '10px 0 22px' }}>The full journal. Cancel anytime.</p>
         <div style={{ height: 1, background: 'var(--line)', margin: '0 -30px 22px' }} />
         <ul className="col" style={{ gap: 14, marginBottom: 28, listStyle: 'none', padding: 0, marginTop: 0 }}>
-          {LITE_FEATURES.map((t) => <li key={t} className="row" style={{ gap: 12, fontSize: 14, color: 'rgba(255,255,255,0.84)' }}><span className="check off"><Check size={13} strokeWidth={3} /></span>{t}</li>)}
+          {LITE_FEATURES.map((t) => <li key={t} className="row" style={{ gap: 12, fontSize: 14, color: 'color-mix(in srgb, var(--fg) 84%, transparent)' }}><span className="check off"><Check size={13} strokeWidth={3} /></span>{t}</li>)}
         </ul>
         <a href={SIGNUP_URL} className="btn btn-primary btn-lg" style={{ marginTop: 'auto' }}>Get started <ArrowRight size={16} /></a>
       </div>
@@ -77,7 +78,7 @@ export function PlanCards() {
         <div aria-hidden="true" style={{ filter: 'blur(9px)', opacity: 0.55, userSelect: 'none', pointerEvents: 'none' }}>
           <div className="row" style={{ alignItems: 'baseline', gap: 4 }}>
             <span className="big num" style={{ fontSize: 64 }}>$00</span>
-            <span className="display" style={{ fontSize: 28, fontWeight: 600, color: 'rgba(255,255,255,0.45)' }}>/m</span>
+            <span className="display" style={{ fontSize: 28, fontWeight: 600, color: 'color-mix(in srgb, var(--fg) 45%, transparent)' }}>/m</span>
           </div>
           <p className="muted" style={{ fontSize: 14, margin: '10px 0 22px' }}>Built for funded traders running real size.</p>
           <div style={{ height: 1, background: 'var(--line)', margin: '0 -30px 22px' }} />

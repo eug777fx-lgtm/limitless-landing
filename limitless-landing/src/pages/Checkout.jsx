@@ -106,7 +106,7 @@ function PaymentStep({ form, onBack, onPay, busy }) {
     <div className="co-step col">
       <div className="col" style={{ gap: 6 }}>
         <h1 className="co-h">Payment</h1>
-        <p className="muted" style={{ fontSize: 14.5 }}>Signed up as <b style={{ color: '#fff', fontWeight: 600 }}>{form.email || 'you@email.com'}</b>. You finish on Stripe's secure checkout page, then come straight back to your journal.</p>
+        <p className="muted" style={{ fontSize: 14.5 }}>Signed up as <b style={{ color: 'var(--fg)', fontWeight: 600 }}>{form.email || 'you@email.com'}</b>. You finish on Stripe's secure checkout page, then come straight back to your journal.</p>
       </div>
       <div className="col" style={{ gap: 10 }}>
         {[

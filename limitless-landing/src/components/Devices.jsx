@@ -3,6 +3,7 @@ import { LayoutDashboard, BookOpen, BarChart3, CalendarDays, Brain, Settings, Pl
 import { smooth } from './ui.jsx'
 import { EQUITY, DAILY } from '../lib/sample.js'
 import { LOGO } from './ui.jsx'
+import { Shot } from '../lib/theme.jsx'
 
 // ── Story timeline (ms) ───────────────────────────────────────────────
 // A trade gets logged on the phone, then lands on the tablet a moment later.
@@ -80,13 +81,13 @@ function MiniChart() {
   const tY = bottom - ((3000 - min) / (max - min)) * (bottom - top)
   return (
     <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', display: 'block', overflow: 'visible' }} aria-hidden="true">
-      <defs><linearGradient id="tabFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fff" stopOpacity=".2" /><stop offset="1" stopColor="#fff" stopOpacity="0" /></linearGradient></defs>
-      <line x1="6" x2={W - 16} y1={tY} y2={tY} stroke="rgba(255,255,255,.28)" strokeDasharray="2 7" />
-      <text x="6" y={tY - 9} fill="rgba(255,255,255,.5)" style={{ font: '500 12px Inter, sans-serif' }}>Profit target $3,000</text>
+      <defs><linearGradient id="tabFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor='var(--fg)' stopOpacity=".2" /><stop offset="1" stopColor='var(--fg)' stopOpacity="0" /></linearGradient></defs>
+      <line x1="6" x2={W - 16} y1={tY} y2={tY} stroke="color-mix(in srgb, var(--fg) 28%, transparent)" strokeDasharray="2 7" />
+      <text x="6" y={tY - 9} fill="color-mix(in srgb, var(--fg) 50%, transparent)" style={{ font: '500 12px Inter, sans-serif' }}>Profit target $3,000</text>
       <path d={`${line} L${last[0]} ${H} L6 ${H} Z`} fill="url(#tabFill)" style={{ animation: 'fade 1.2s var(--ease) 1.4s both' }} />
-      <path d={line} fill="none" stroke="#fff" strokeWidth="3.4" strokeLinecap="round" pathLength="1" strokeDasharray="1" style={{ animation: 'draw 2s var(--ease) 1s both', filter: 'drop-shadow(0 0 8px rgba(255,255,255,.5))' }} />
-      <line x1={last[0]} x2={last[0]} y1={last[1]} y2={H} stroke="rgba(255,255,255,.55)" strokeDasharray="4 6" style={{ animation: 'fade .6s 2.8s both' }} />
-      <circle cx={last[0]} cy={last[1]} r="9" fill="#000" stroke="#fff" strokeWidth="4" style={{ transformOrigin: `${last[0]}px ${last[1]}px`, animation: 'pop .6s var(--spring) 2.8s both' }} />
+      <path d={line} fill="none" stroke='var(--fg)' strokeWidth="3.4" strokeLinecap="round" pathLength="1" strokeDasharray="1" style={{ animation: 'draw 2s var(--ease) 1s both', filter: 'drop-shadow(0 0 8px color-mix(in srgb, var(--fg) 50%, transparent))' }} />
+      <line x1={last[0]} x2={last[0]} y1={last[1]} y2={H} stroke="color-mix(in srgb, var(--fg) 55%, transparent)" strokeDasharray="4 6" style={{ animation: 'fade .6s 2.8s both' }} />
+      <circle cx={last[0]} cy={last[1]} r="9" fill='var(--bg)' stroke='var(--fg)' strokeWidth="4" style={{ transformOrigin: `${last[0]}px ${last[1]}px`, animation: 'pop .6s var(--spring) 2.8s both' }} />
     </svg>
   )
 }
@@ -105,9 +106,9 @@ function MiniCalendar({ synced }) {
         return (
           <span key={i} className="num" style={{
             height: 34, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 600,
-            background: has ? (n >= 0 ? `rgba(255,255,255,${a})` : `rgba(255,169,161,${a * 0.8})`) : 'rgba(255,255,255,.04)',
-            color: has && n >= 0 && a > 0.5 ? '#000' : d > 28 ? 'rgba(255,255,255,.25)' : '#fff',
-            boxShadow: d === 28 ? '0 0 0 2px #fff' + (synced ? ', 0 0 18px rgba(255,255,255,.5)' : '') : 'none',
+            background: has ? (n >= 0 ? `color-mix(in srgb, var(--fg) ${Math.round((a) * 100)}%, transparent)` : `color-mix(in srgb, var(--neg) ${Math.round((a * 0.8) * 100)}%, transparent)`) : 'color-mix(in srgb, var(--fg) 4%, transparent)',
+            color: has && n >= 0 && a > 0.5 ? 'var(--bg)' : d > 28 ? 'color-mix(in srgb, var(--fg) 25%, transparent)' : 'var(--fg)',
+            boxShadow: d === 28 ? '0 0 0 2px #fff' + (synced ? ', 0 0 18px color-mix(in srgb, var(--fg) 50%, transparent)' : '') : 'none',
             transition: 'background .6s, box-shadow .6s, color .6s',
           }}>{d}</span>
         )
@@ -142,9 +143,9 @@ export const TabletScreen = memo(function TabletScreen({ synced, toast }) {
           </div>
           <div className="row" style={{ gap: 10 }}>
             <div className="well row" style={{ borderRadius: 99, padding: 4, gap: 2, fontSize: 13 }}>
-              {['Week', 'Month', 'Year'].map((l) => <span key={l} style={{ padding: '8px 14px', borderRadius: 99, fontWeight: 500, background: l === 'Month' ? '#fff' : 'transparent', color: l === 'Month' ? '#000' : 'var(--fg2)' }}>{l}</span>)}
+              {['Week', 'Month', 'Year'].map((l) => <span key={l} style={{ padding: '8px 14px', borderRadius: 99, fontWeight: 500, background: l === 'Month' ? 'var(--fg)' : 'transparent', color: l === 'Month' ? 'var(--bg)' : 'var(--fg2)' }}>{l}</span>)}
             </div>
-            <span className="row" style={{ gap: 6, background: '#fff', color: '#000', borderRadius: 99, padding: '0 16px', height: 40, fontSize: 13, fontWeight: 600 }}><Plus size={15} /> Log trade</span>
+            <span className="row" style={{ gap: 6, background: 'var(--fg)', color: 'var(--bg)', borderRadius: 99, padding: '0 16px', height: 40, fontSize: 13, fontWeight: 600 }}><Plus size={15} /> Log trade</span>
           </div>
         </div>
 
@@ -155,7 +156,7 @@ export const TabletScreen = memo(function TabletScreen({ synced, toast }) {
             ['Profit factor', '1.60', 'Above 1.5 target'],
             ['Discipline', synced ? '92' : '91', 'Rules kept'],
           ].map(([k, v, s], i) => (
-            <div key={k} className="well col" style={{ borderRadius: 20, padding: '16px 18px', gap: 4, boxShadow: i === 0 && toast ? 'inset 0 0 0 1px rgba(255,255,255,.5), 0 0 30px rgba(255,255,255,.12)' : undefined, transition: 'box-shadow .6s' }}>
+            <div key={k} className="well col" style={{ borderRadius: 20, padding: '16px 18px', gap: 4, boxShadow: i === 0 && toast ? 'inset 0 0 0 1px color-mix(in srgb, var(--fg) 50%, transparent), 0 0 30px color-mix(in srgb, var(--fg) 12%, transparent)' : undefined, transition: 'box-shadow .6s' }}>
               <span style={{ fontSize: 12.5, color: 'var(--fg3)' }}>{k}</span>
               <span className="num display" style={{ fontSize: 30, fontWeight: 700, letterSpacing: '-0.03em' }}>{v}</span>
               <span style={{ fontSize: 12, color: i === 0 && synced ? 'var(--pos)' : 'var(--fg3)', transition: 'color .6s' }}>{s}</span>
@@ -229,9 +230,9 @@ function LogScreen({ t }) {
         <span style={{ fontSize: 13, color: 'var(--fg3)' }}>Oct 28 · 10:02</span>
       </div>
       <div className="row" style={{ gap: 8 }}>
-        <span style={{ background: '#fff', color: '#000', borderRadius: 99, padding: '7px 14px', fontSize: 13, fontWeight: 600 }}>NQ</span>
+        <span style={{ background: 'var(--fg)', color: 'var(--bg)', borderRadius: 99, padding: '7px 14px', fontSize: 13, fontWeight: 600 }}>NQ</span>
         <div className="well row" style={{ borderRadius: 99, padding: 3, fontSize: 13 }}>
-          <span style={{ padding: '5px 14px', borderRadius: 99, background: '#fff', color: '#000', fontWeight: 600 }}>Long</span>
+          <span style={{ padding: '5px 14px', borderRadius: 99, background: 'var(--fg)', color: 'var(--bg)', fontWeight: 600 }}>Long</span>
           <span style={{ padding: '5px 12px', color: 'var(--fg2)' }}>Short</span>
         </div>
         <span className="well" style={{ borderRadius: 99, padding: '7px 12px', fontSize: 13, color: 'var(--fg2)' }}>1 ct</span>
@@ -247,14 +248,14 @@ function LogScreen({ t }) {
       <div className="col" style={{ gap: 7 }}>
         <span style={{ fontSize: 11, color: 'var(--fg3)' }}>How did you feel?</span>
         <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
-          {['Focused', 'Patient', 'FOMO', 'Hesitant'].map((s) => <span key={s} style={{ borderRadius: 99, padding: '6px 12px', fontSize: 12.5, fontWeight: 500, transition: 'all .4s', background: s === 'Focused' && done ? '#fff' : 'rgba(255,255,255,.06)', color: s === 'Focused' && done ? '#000' : 'var(--fg2)' }}>{s}</span>)}
+          {['Focused', 'Patient', 'FOMO', 'Hesitant'].map((s) => <span key={s} style={{ borderRadius: 99, padding: '6px 12px', fontSize: 12.5, fontWeight: 500, transition: 'all .4s', background: s === 'Focused' && done ? 'var(--fg)' : 'color-mix(in srgb, var(--fg) 6%, transparent)', color: s === 'Focused' && done ? 'var(--bg)' : 'var(--fg2)' }}>{s}</span>)}
         </div>
       </div>
       <div className="ink row" style={{ borderRadius: 18, padding: '14px 16px', justifyContent: 'space-between', opacity: done ? 1 : 0.35, transition: 'opacity .5s' }}>
         <div className="col"><span style={{ fontSize: 11, color: 'var(--fg3)' }}>P&amp;L</span><span className="num display pos" style={{ fontSize: 24, fontWeight: 700 }}>{done ? '+$530.00' : '$0.00'}</span></div>
         <div className="col" style={{ alignItems: 'flex-end' }}><span style={{ fontSize: 11, color: 'var(--fg3)' }}>Result</span><span className="num display" style={{ fontSize: 20, fontWeight: 600 }}>{done ? '1.9R' : '0R'}</span></div>
       </div>
-      <span className="row" style={{ marginTop: 'auto', marginBottom: 14, height: 52, borderRadius: 99, justifyContent: 'center', gap: 8, fontWeight: 600, fontSize: 15, background: saved ? 'rgba(166,242,190,1)' : '#fff', color: '#000', transform: pressed ? 'scale(.95)' : 'none', transition: 'transform .25s var(--spring), background .4s', boxShadow: '0 0 24px rgba(255,255,255,.25)' }}>
+      <span className="row" style={{ marginTop: 'auto', marginBottom: 14, height: 52, borderRadius: 99, justifyContent: 'center', gap: 8, fontWeight: 600, fontSize: 15, background: saved ? 'color-mix(in srgb, var(--pos) 100%, transparent)' : 'var(--fg)', color: 'var(--bg)', transform: pressed ? 'scale(.95)' : 'none', transition: 'transform .25s var(--spring), background .4s', boxShadow: '0 0 24px color-mix(in srgb, var(--fg) 25%, transparent)' }}>
         {saved ? <><Check size={17} strokeWidth={3} /> Saved</> : 'Save trade'}
       </span>
     </div>
@@ -270,19 +271,19 @@ const TodayScreen = memo(function TodayScreen() {
       <div className="row" style={{ gap: 8 }}>
         <span className="well" style={{ borderRadius: 99, padding: '6px 12px', fontSize: 12.5 }}>1 trade</span>
         <span className="well" style={{ borderRadius: 99, padding: '6px 12px', fontSize: 12.5 }}>1.9R</span>
-        <span style={{ borderRadius: 99, padding: '6px 12px', fontSize: 12.5, background: '#fff', color: '#000', fontWeight: 600 }}>A+ setup</span>
+        <span style={{ borderRadius: 99, padding: '6px 12px', fontSize: 12.5, background: 'var(--fg)', color: 'var(--bg)', fontWeight: 600 }}>A+ setup</span>
       </div>
       <div className="well col" style={{ borderRadius: 22, padding: 16, gap: 11 }}>
         <div className="row" style={{ justifyContent: 'space-between' }}><span style={{ fontWeight: 600, fontSize: 14 }}>Rules kept</span><span className="num" style={{ fontWeight: 700 }}>5/5</span></div>
         {rules.map((r, i) => (
           <div key={r} className="row" style={{ gap: 10, fontSize: 13, animation: `rise .5s var(--ease) ${0.15 + i * 0.08}s both` }}>
-            <span style={{ width: 22, height: 22, borderRadius: 99, background: '#fff', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 10px rgba(255,255,255,.35)' }}><Check size={12} strokeWidth={3} /></span>{r}
+            <span style={{ width: 22, height: 22, borderRadius: 99, background: 'var(--fg)', color: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 10px color-mix(in srgb, var(--fg) 35%, transparent)' }}><Check size={12} strokeWidth={3} /></span>{r}
           </div>
         ))}
       </div>
       <div className="ink col" style={{ borderRadius: 20, padding: '14px 16px', gap: 8 }}>
         <div className="row" style={{ justifyContent: 'space-between', fontSize: 12.5 }}><span style={{ color: 'var(--fg3)' }}>Apex 50K · to target</span><span className="num" style={{ fontWeight: 600 }}>$860</span></div>
-        <div style={{ height: 9, borderRadius: 99, background: 'rgba(255,255,255,.08)', overflow: 'hidden' }}><i style={{ display: 'block', height: '100%', width: '71%', borderRadius: 99, background: '#fff', transformOrigin: 'left', animation: 'growX 1.1s var(--ease) .3s both', boxShadow: '0 0 10px rgba(255,255,255,.5)' }} /></div>
+        <div style={{ height: 9, borderRadius: 99, background: 'color-mix(in srgb, var(--fg) 8%, transparent)', overflow: 'hidden' }}><i style={{ display: 'block', height: '100%', width: '71%', borderRadius: 99, background: 'var(--fg)', transformOrigin: 'left', animation: 'growX 1.1s var(--ease) .3s both', boxShadow: '0 0 10px color-mix(in srgb, var(--fg) 50%, transparent)' }} /></div>
       </div>
       <div className="well row" style={{ borderRadius: 20, padding: '12px 14px', gap: 12, animation: 'rise .5s var(--ease) .6s both' }}>
         <span className="ink" style={{ width: 44, height: 44, borderRadius: 13, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', lineHeight: 1.1 }}><b style={{ fontSize: 13 }}>NQ</b><small style={{ fontSize: 8, color: 'var(--fg3)', letterSpacing: '.1em' }}>LONG</small></span>
@@ -302,8 +303,8 @@ const MindScreen = memo(function MindScreen() {
       <div className="well" style={{ borderRadius: 22, padding: '18px 14px 12px', display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 6, alignItems: 'end' }}>
         {bars.map(([l, h, peak, bad], i) => (
           <div key={l} className="col" style={{ alignItems: 'center', gap: 6 }}>
-            <div style={{ width: 12, height: 150, borderRadius: 99, background: 'rgba(255,255,255,.06)', position: 'relative', overflow: 'hidden' }}>
-              <i style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: h + '%', borderRadius: 99, background: bad ? 'rgba(255,169,161,.9)' : peak ? '#fff' : 'rgba(255,255,255,.55)', transformOrigin: 'bottom', animation: `growY .9s var(--ease) ${0.1 + i * 0.07}s both`, boxShadow: peak ? '0 0 12px rgba(255,255,255,.5)' : 'none' }} />
+            <div style={{ width: 12, height: 150, borderRadius: 99, background: 'color-mix(in srgb, var(--fg) 6%, transparent)', position: 'relative', overflow: 'hidden' }}>
+              <i style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: h + '%', borderRadius: 99, background: bad ? 'color-mix(in srgb, var(--neg) 90%, transparent)' : peak ? 'var(--fg)' : 'color-mix(in srgb, var(--fg) 55%, transparent)', transformOrigin: 'bottom', animation: `growY .9s var(--ease) ${0.1 + i * 0.07}s both`, boxShadow: peak ? '0 0 12px color-mix(in srgb, var(--fg) 50%, transparent)' : 'none' }} />
             </div>
             <span style={{ fontSize: 9.5, color: 'var(--fg2)' }}>{l}</span>
           </div>
@@ -377,10 +378,10 @@ export default function HeroDevices() {
       <div className="devices-glow" aria-hidden="true" />
       <div ref={inner} className="devices-inner">
         <div className="tablet">
-          <Scaled w={1180} h={820}><TabletScreen synced={synced} toast={toast} /></Scaled>
+          <Scaled w={1180} h={820}><Shot name="tablet" alt="LIMITLESS dashboard on a tablet" /></Scaled>
         </div>
         <div className="phone">
-          <Scaled w={330} h={714}><PhoneScreen t={t} /></Scaled>
+          <Scaled w={330} h={714}><Shot name="phone" alt="LIMITLESS dashboard on a phone" /></Scaled>
         </div>
       </div>
       <div className="glass float dev-chip chip-a" aria-hidden="true"><ShieldCheck size={15} /> 5/5 rules kept</div>

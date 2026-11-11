@@ -77,7 +77,7 @@ export function RuleSim() {
           {rows.map((r) => (
             <div key={r.k} className="col" style={{ gap: 8 }}>
               <div className="row" style={{ justifyContent: 'space-between', fontSize: 14 }}><span>{r.k}</span><span className="num" style={{ fontWeight: 600 }}>{r.v}</span></div>
-              <div className="bar well"><i style={{ width: `${Math.max(2, Math.min(1, r.p) * 100)}%`, background: r.bad ? 'var(--neg)' : r.warn ? 'linear-gradient(90deg,#fff,#FFC98A)' : '#fff', transition: 'width .45s var(--ease), background .3s', animation: 'none' }} /></div>
+              <div className="bar well"><i style={{ width: `${Math.max(2, Math.min(1, r.p) * 100)}%`, background: r.bad ? 'var(--neg)' : r.warn ? 'var(--fg2)' : 'var(--fg)', transition: 'width .45s var(--ease), background .3s', animation: 'none' }} /></div>
             </div>
           ))}
           <p className="sim-msg" aria-live="polite">{s.msg}</p>

@@ -27,12 +27,12 @@ export default function CursorTrail() {
       ctx.clearRect(0, 0, innerWidth, innerHeight)
       if (pts.length > 2) {
         ctx.lineCap = 'round'; ctx.lineJoin = 'round'
-        ctx.shadowColor = 'rgba(255,255,255,0.9)'; ctx.shadowBlur = 16
+        ctx.shadowColor = 'color-mix(in srgb, var(--fg) 90%, transparent)'; ctx.shadowBlur = 16
         for (let i = 1; i < pts.length - 1; i++) {
           const a = pts[i - 1], b = pts[i], c = pts[i + 1]
           const k = i / (pts.length - 1) // 0 at the tail, 1 at the head
           const fade = 1 - (now - b.t) / LIFE
-          ctx.strokeStyle = `rgba(255,255,255,${(0.9 * k * fade).toFixed(3)})`
+          ctx.strokeStyle = `color-mix(in srgb, var(--fg) ${Math.round(((0.9 * k * fade).toFixed(3)) * 100)}%, transparent)`
           ctx.lineWidth = 0.8 + 3.4 * k
           ctx.beginPath()
           ctx.moveTo((a.x + b.x) / 2, (a.y + b.y) / 2)

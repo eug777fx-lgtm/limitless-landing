@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
+import './site-skin.css'
 import App from './App.jsx'
 
 document.documentElement.classList.add('js')

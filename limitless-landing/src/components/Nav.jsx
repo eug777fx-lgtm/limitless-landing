@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Menu, X, ArrowRight } from 'lucide-react'
 import { Link, useRouter, SIGNUP_URL, LOGIN_URL } from '../lib/site.jsx'
 import { Logo } from './ui.jsx'
+import { ThemeToggle } from '../lib/theme.jsx'
 
 const LINKS = [
   { label: 'Features', to: '/', hash: 'features' },
@@ -45,6 +46,7 @@ export function SiteNav() {
         <span className="hide-md" style={{ display: 'contents' }}>
           {LINKS.map((l) => <Link key={l.label} to={l.to} hash={l.hash} className="nav-link" aria-current={current(l) ? 'page' : undefined}>{l.label}</Link>)}
         </span>
+        <ThemeToggle />
         <a href={LOGIN_URL} className="nav-link nav-signin">Sign in</a>
         <a href={SIGNUP_URL} className="btn btn-primary" style={{ minHeight: 44, marginLeft: 4 }}>Start for $15</a>
         <button type="button" className="icon-btn show-md" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={() => setOpen(!open)} style={{ marginLeft: 2 }}>
