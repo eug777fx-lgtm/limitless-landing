@@ -88,3 +88,10 @@ html[data-theme="light"] .ink { background: #0B0B0C; color: #fff; --fg: #fff; --
 /* the paint sits behind the page, so the body itself stays see-through */
 html { background: var(--bg) !important; }
 body { background: transparent !important; }
+/* Rules · Pro is not out yet: keep it blurred */
+.tour-window { position: relative; }
+.tour-blur { filter: blur(14px) saturate(.6); transform: scale(1.03); pointer-events: none; user-select: none; }
+.tour-lock { position: absolute; inset: 0; z-index: 3; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; text-align: center; padding: 20px; color: var(--fg); background: color-mix(in srgb, var(--bg) 25%, transparent); }
+.tour-lock-ico { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: var(--btn); color: var(--btn-ink); }
+.tour-lock b { font: 700 20px var(--display); letter-spacing: -.03em; }
+.tour-lock span:last-child { font-size: 14px; color: var(--fg2); max-width: 280px; }

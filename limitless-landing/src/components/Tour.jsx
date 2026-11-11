@@ -294,7 +294,10 @@ export default function Tour() {
             <span className="tl" /><span className="tl" /><span className="tl" />
             <span className="tour-url">app.limitless-journal.com</span>
           </div>
-          <Scaled w={1180} h={760}><Screen /></Scaled>
+          <div className={tab.key === 'rules' ? 'tour-blur' : undefined}><Scaled w={1180} h={760}><Screen /></Scaled></div>
+          {tab.key === 'rules' && (
+            <div className="tour-lock"><span className="tour-lock-ico"><Lock size={18} /></span><b>Coming with Pro</b><span>Account rules, drawdown and daily stop alerts.</span></div>
+          )}
         </div>
         <span className="tour-note faint">Sample account. Your own trades show up here.</span>
       </div>
