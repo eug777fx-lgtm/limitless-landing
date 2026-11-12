@@ -5,7 +5,7 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from './site.jsx'
 
 const TOPIC = 'realtime:ltj-live'
 const KEY = Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4)
-let ws = null, joined = false, ref = 0, beat = 0, retry = 0, sent = ''
+let ws = null, joined = false, ref = 0, beat = 0, retry = 0, sent = '', leaving = false
 let state = null
 
 function source() {
@@ -60,7 +60,8 @@ function connect() {
     clearInterval(beat); ws = null; joined = false; sent = ''
     // come back after a drop, slower each time; stop retrying while the tab is hidden
     const wait = Math.min(30000, 2000 * 2 ** retry++)
-    setTimeout(() => { if (!document.hidden) connect() }, wait)
+    if (leaving) return
+    setTimeout(() => { if (!document.hidden && !leaving) connect() }, wait)
   }
   ws.onerror = () => { try { ws && ws.close() } catch { /* already closed */ } }
 }
@@ -75,4 +76,7 @@ export function liveSet(page) {
 
 if (typeof document !== 'undefined') {
   document.addEventListener('visibilitychange', () => { if (!document.hidden && !ws && state) connect() })
+  // leaving or reloading: close now so the admin sees the visitor go at once, not a minute later
+  window.addEventListener('pagehide', () => { leaving = true; try { ws && ws.close() } catch { /* already closed */ } })
+  window.addEventListener('pageshow', (e) => { if (e.persisted) { leaving = false; if (!ws && state) connect() } })
 }
